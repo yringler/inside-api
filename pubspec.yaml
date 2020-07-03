@@ -7,7 +7,8 @@ environment:
   sdk: '>=2.8.1 <3.0.0'
 
 dependencies:
-  wordpress_api: ^0.1.4
+  flutter_wordpress:
+    path: ../flutter_wordpress/
 
 dev_dependencies:
   pedantic: ^1.9.0
