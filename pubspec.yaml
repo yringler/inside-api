@@ -11,6 +11,9 @@ dependencies:
     git:
       url: https://github.com/dreamsoftin/flutter_wordpress
       ref: fdee2078bf36b0b85e7f3f7c63aa9dbcc473f894
-
+  html: ^0.14.0+3
+  json_annotation: ^3.0.1
 dev_dependencies:
   pedantic: ^1.9.0
+  json_serializable: ^3.3.0
+  build_runner: ^1.10.0
