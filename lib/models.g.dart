@@ -6,23 +6,6 @@ part of 'models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Site _$SiteFromJson(Map<String, dynamic> json) {
-  return Site()
-    ..sections = (json['sections'] as Map<String, dynamic>)?.map(
-      (k, e) => MapEntry(int.parse(k),
-          e == null ? null : Section.fromJson(e as Map<String, dynamic>)),
-    )
-    ..topItems = (json['topItems'] as List)
-        ?.map((e) =>
-            e == null ? null : TopItem.fromJson(e as Map<String, dynamic>))
-        ?.toList();
-}
-
-Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{
-      'sections': instance.sections?.map((k, e) => MapEntry(k.toString(), e)),
-      'topItems': instance.topItems,
-    };
-
 Section _$SectionFromJson(Map<String, dynamic> json) {
   return Section(
     id: json['id'] as String,
@@ -50,9 +33,9 @@ SectionContent _$SectionContentFromJson(Map<String, dynamic> json) {
     media: json['media'] == null
         ? null
         : Media.fromJson(json['media'] as Map<String, dynamic>),
-    smallSection: json['smallSection'] == null
+    mediaSection: json['mediaSection'] == null
         ? null
-        : SmallSection.fromJson(json['smallSection'] as Map<String, dynamic>),
+        : MediaSection.fromJson(json['mediaSection'] as Map<String, dynamic>),
   );
 }
 
@@ -60,7 +43,7 @@ Map<String, dynamic> _$SectionContentToJson(SectionContent instance) =>
     <String, dynamic>{
       'sectionId': instance.sectionId,
       'media': instance.media,
-      'smallSection': instance.smallSection,
+      'mediaSection': instance.mediaSection,
     };
 
 Media _$MediaFromJson(Map<String, dynamic> json) {
@@ -77,16 +60,18 @@ Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
       'source': instance.source,
     };
 
-SmallSection _$SmallSectionFromJson(Map<String, dynamic> json) {
-  return SmallSection(
-    title: json['title'] as String,
+MediaSection _$MediaSectionFromJson(Map<String, dynamic> json) {
+  return MediaSection(
+    media: (json['media'] as List)
+        ?.map(
+            (e) => e == null ? null : Media.fromJson(e as Map<String, dynamic>))
+        ?.toList(),
+    title: json['title'],
     description: json['description'] as String,
-  )..media = (json['media'] as List)
-      ?.map((e) => e == null ? null : Media.fromJson(e as Map<String, dynamic>))
-      ?.toList();
+  );
 }
 
-Map<String, dynamic> _$SmallSectionToJson(SmallSection instance) =>
+Map<String, dynamic> _$MediaSectionToJson(MediaSection instance) =>
     <String, dynamic>{
       'title': instance.title,
       'description': instance.description,

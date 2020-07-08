@@ -8,9 +8,10 @@ environment:
 
 dependencies:
   flutter_wordpress:
-    git:
-      url: https://github.com/dreamsoftin/flutter_wordpress
-      ref: fdee2078bf36b0b85e7f3f7c63aa9dbcc473f894
+    #git:
+    #  url: https://github.com/dreamsoftin/flutter_wordpress
+    #  ref: fdee2078bf36b0b85e7f3f7c63aa9dbcc473f894
+    path: ../flutter_wordpress
   html: ^0.14.0+3
   json_annotation: ^3.0.1
 dev_dependencies:

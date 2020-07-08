@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+export 'site.dart';
 
 part 'models.g.dart';
 
@@ -8,20 +9,6 @@ abstract class SiteDataItem {
   final String description;
 
   SiteDataItem({this.description, this.title});
-}
-
-@JsonSerializable()
-
-/// All data on the site.
-class Site {
-  Map<int, Section> sections = Map();
-  List<TopItem> topItems = List();
-
-  Map<String, dynamic> toJson() => _$SiteToJson(this);
-
-  Site();
-
-  Site.fromJson(Map<String, dynamic> json);
 }
 
 @JsonSerializable()
@@ -49,10 +36,10 @@ class Section extends SiteDataItem {
 class SectionContent {
   final int sectionId;
   final Media media;
-  final SmallSection smallSection;
+  final MediaSection mediaSection;
 
-  SectionContent({this.sectionId, this.media, this.smallSection}) {
-    if ([sectionId, media, smallSection]
+  SectionContent({this.sectionId, this.media, this.mediaSection}) {
+    if ([sectionId, media, mediaSection]
             .where((element) => element != null)
             .length >
         1) {
@@ -69,26 +56,36 @@ class SectionContent {
 /// One lecture. For now, only supports video.
 class Media extends SiteDataItem {
   final String source;
+  final int _length;
 
-  Media({this.source, String title, String description})
-      : super(title: title, description: description);
+  Media({this.source, Duration length, String title, String description})
+      : _length = length.inMilliseconds,
+        super(title: title, description: description);
+
+  Duration get length => Duration(milliseconds: _length);
 
   Map<String, dynamic> toJson() => _$MediaToJson(this);
   Media.fromJson(Map<String, dynamic> json) : this();
+
+  Media copyWith({Duration length}) => Media(
+      description: description,
+      length: length ?? this.length,
+      source: source,
+      title: title);
 }
 
 @JsonSerializable()
 
-/// A small section is a special case of section which only contains two media
+/// A small section is a special case of section which only contains media
 /// items.
-class SmallSection extends SiteDataItem {
-  List<Media> media;
+class MediaSection extends SiteDataItem {
+  final List<Media> media;
 
-  SmallSection({String title, String description})
+  MediaSection({this.media, title, String description})
       : super(title: title, description: description);
 
-  Map<String, dynamic> toJson() => _$SmallSectionToJson(this);
-  SmallSection.fromJson(Map<String, dynamic> json) : this();
+  Map<String, dynamic> toJson() => _$MediaSectionToJson(this);
+  MediaSection.fromJson(Map<String, dynamic> json) : this();
 }
 
 @JsonSerializable()
