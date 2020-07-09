@@ -21,9 +21,63 @@ class Site {
 
   /// Go through all the data and update the [Section.audioCount].
   void setAudioCount() {
-    for (var section in topItems.map((e) => sections[e.sectionId])) {
-      
+    var processing = Set<int>();
+    for (final id in sections.keys) {
+      _setAudioCount(processing, id);
     }
+  }
+
+  int _setAudioCount(Set<int> processing, int id) {
+    if (processing.contains(id)) {
+      return 0;
+    }
+
+    final section = sections[id];
+
+    if (section.audioCount != null) {
+      return section.audioCount;
+    }
+
+    // Handle empty sections.
+    if (section.content.isEmpty) {
+      sections[id] = sections[id].copyWith(audioCount: 0);
+      return 0;
+    }
+
+    // Keep track so that if this section ends up, through its children,
+    // referencing itself, we can gracefully return 0.
+    processing.add(id);
+
+    // Count how many classes are directly in this section.
+    final directAudioCount = section.content.map((e) {
+      if (e.media != null) {
+        return 1;
+      }
+      if (e.mediaSection != null) {
+        return e.mediaSection.media.length;
+      }
+      return 0;
+    }).reduce((value, element) => value + element);
+
+    // Count how many classes are in child sections, recursively.
+    var childAudioCount = 0;
+    final childSections = section.content
+        .where((element) => element.sectionId != null)
+        .map((e) => sections[e.sectionId]);
+
+    if (childSections.isNotEmpty) {
+      childAudioCount = childSections
+          .map((e) => _setAudioCount(processing, e.id))
+          .reduce((value, element) => value + element);
+    }
+
+    // Save the audio count.
+    sections[id] =
+        sections[id].copyWith(audioCount: directAudioCount + childAudioCount);
+
+    processing.remove(id);
+
+    return sections[id].audioCount;
   }
 }
 
@@ -49,9 +103,7 @@ Future<Site> fromWordPress(String wordpressUrl) async {
   // Load sections.
   final site = Site()
     ..sections = Map.fromEntries(categories.map((e) => MapEntry(
-        e.id,
-        Section(
-            id: e.id.toString(), description: e.description, title: e.name))));
+        e.id, Section(id: e.id, description: e.description, title: e.name))));
 
   // Connect sections.
   // Add any categories without parents to topItems.

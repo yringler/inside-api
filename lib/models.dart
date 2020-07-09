@@ -15,17 +15,31 @@ abstract class SiteDataItem {
 
 /// Onne section. A section contains any amount of media or child sections.
 class Section extends SiteDataItem {
-  final String id;
-  int audioCount;
-  List<SectionContent> content;
+  final int id;
+  final int audioCount;
+  final List<SectionContent> content;
 
-  Section({this.id, String title, String description, this.content})
-      : super(title: title, description: description) {
-    content ??= List();
+  Section(
+      {this.id,
+      String title,
+      String description,
+      List<SectionContent> content,
+      this.audioCount})
+      : content = content ?? List(),
+        super(title: title, description: description) {
+    ;
   }
 
   Map<String, dynamic> toJson() => _$SectionToJson(this);
   Section.fromJson(Map<String, dynamic> json) : this();
+
+  Section copyWith({int audioCount}) => Section(
+        id: id,
+        audioCount: audioCount,
+        content: content,
+        title: title,
+        description: description,
+      );
 }
 
 @JsonSerializable()
