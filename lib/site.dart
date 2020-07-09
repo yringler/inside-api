@@ -19,9 +19,13 @@ class Site {
 
   Site.fromJson(Map<String, dynamic> json);
 
+  /// Flatten the category tree as much as possible.
+  void compressSections() {
+  }
+
   /// Go through all the data and update the [Section.audioCount].
   void setAudioCount() {
-    var processing = Set<int>();
+    var processing = <int>{};
     for (final id in sections.keys) {
       _setAudioCount(processing, id);
     }

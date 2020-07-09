@@ -1,3 +1,4 @@
+import 'package:inside_api/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 export 'site.dart';
 
@@ -18,13 +19,16 @@ class Section extends SiteDataItem {
   final int id;
   final int audioCount;
   final List<SectionContent> content;
+  @JsonKey(ignore: true)
+  final List<int> parentIds;
 
   Section(
       {this.id,
       String title,
       String description,
       List<SectionContent> content,
-      this.audioCount})
+      this.audioCount,
+      this.parentIds})
       : content = content ?? List(),
         super(title: title, description: description) {
     ;
@@ -40,6 +44,19 @@ class Section extends SiteDataItem {
         title: title,
         description: description,
       );
+
+  /// Remove this section from the site. If it has any children, they will be
+  /// attached to all parents of this section.
+  void removeFrom(Site site) {
+    final parents = parentIds.map((e) => site.sections[e]);
+
+    for (final section in parents) {
+      final index = section.content.indexWhere((element) => element.sectionId == id);
+      section.content.replaceRange(index, index + 1, section.content);
+    }
+
+    site.sections.remove(id);
+  }
 }
 
 @JsonSerializable()
