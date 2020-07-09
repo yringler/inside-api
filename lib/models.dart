@@ -73,7 +73,7 @@ class Media extends SiteDataItem {
   final int _length;
 
   Media({this.source, Duration length, String title, String description})
-      : _length = length.inMilliseconds,
+      : _length = length?.inMilliseconds ?? 0,
         super(title: title, description: description);
 
   Duration get length => Duration(milliseconds: _length);

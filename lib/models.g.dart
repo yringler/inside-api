@@ -8,7 +8,7 @@ part of 'models.dart';
 
 Section _$SectionFromJson(Map<String, dynamic> json) {
   return Section(
-    id: json['id'] as String,
+    id: json['id'] as int,
     title: json['title'] as String,
     description: json['description'] as String,
     content: (json['content'] as List)
@@ -16,7 +16,8 @@ Section _$SectionFromJson(Map<String, dynamic> json) {
             ? null
             : SectionContent.fromJson(e as Map<String, dynamic>))
         ?.toList(),
-  )..audioCount = json['audioCount'] as int;
+    audioCount: json['audioCount'] as int,
+  );
 }
 
 Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
@@ -49,6 +50,9 @@ Map<String, dynamic> _$SectionContentToJson(SectionContent instance) =>
 Media _$MediaFromJson(Map<String, dynamic> json) {
   return Media(
     source: json['source'] as String,
+    length: json['length'] == null
+        ? null
+        : Duration(microseconds: json['length'] as int),
     title: json['title'] as String,
     description: json['description'] as String,
   );
@@ -58,6 +62,7 @@ Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
       'title': instance.title,
       'description': instance.description,
       'source': instance.source,
+      'length': instance.length?.inMicroseconds,
     };
 
 MediaSection _$MediaSectionFromJson(Map<String, dynamic> json) {

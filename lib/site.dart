@@ -82,7 +82,7 @@ class Site {
 }
 
 Future<Site> fromWordPress(String wordpressUrl) async {
-  final wordPress = wp.WordPress(baseUrl: 'http://localhost');
+  final wordPress = wp.WordPress(baseUrl: wordpressUrl);
 
   var posts = await wordPress.fetchPosts(
       postParams: wp.ParamsPostList(
