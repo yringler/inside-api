@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:inside_api/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 export 'site.dart';
@@ -39,7 +41,7 @@ class Section extends SiteDataItem {
 
   Section copyWith({int audioCount, int parentId}) => Section(
       id: id,
-      audioCount: audioCount,
+      audioCount: audioCount ?? this.audioCount,
       content: content,
       title: title,
       description: description,
@@ -63,14 +65,20 @@ class Section extends SiteDataItem {
     }
 
     final parent = site.sections[parentId];
+    assert(parent != null);
     final index =
         parent.content.indexWhere((element) => element.sectionId == id);
 
-    // Save content if there is any.
-    if (audioCount > 0) {
-      parent.content.replaceRange(index, index + 1, content);
+    if (index >= 0) {
+      // Save content if there is any.
+      if (audioCount > 0) {
+        parent.content.replaceRange(index, index + 1, content);
+      } else {
+        parent.content.removeAt(index);
+      }
     } else {
-      parent.content.removeAt(index);
+      print("...That wasn't supposed to happen");
+      print(json.encode(this));
     }
 
     site.sections.remove(id);

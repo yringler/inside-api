@@ -21,16 +21,23 @@ class Site {
 
   /// Flatten the category tree as much as possible.
   void compressSections() {
-    while (true) {
-      // Merge any section which has little content into its parent.
-      final sectionsRemoved = sections.values
-          .where((element) => element.audioCount < 2)
-          .where((element) => element.removeFrom(this));
+    var removedSomething = false;
+    do {
+      removedSomething = false;
 
-      if (sectionsRemoved.isEmpty) {
-        return;
+      // Merge any section which has little content into its parent.
+      final sectionsToRemove = sections.values
+          .where((element) => element.audioCount < 2)
+          .map((e) => e.id)
+          .toList();
+
+      for (final sectionId in sectionsToRemove) {
+        final section = sections[sectionId];
+        if (section.removeFrom(this)) {
+          removedSomething = true;
+        }
       }
-    }
+    } while (removedSomething);
   }
 
   /// Go through all the data and update the [Section.audioCount].
@@ -98,6 +105,7 @@ class Site {
 Future<Site> fromWordPress(String wordpressUrl) async {
   final wordPress = wp.WordPress(baseUrl: wordpressUrl);
 
+  print('loading posts...');
   var posts = await wordPress.fetchPosts(
       postParams: wp.ParamsPostList(
         context: wp.WordPressContext.view,
@@ -107,6 +115,7 @@ Future<Site> fromWordPress(String wordpressUrl) async {
       fetchCategories: true,
       fetchAll: true);
 
+  print('loading categories...');
   // Make request.
   var categories = await wordPress.fetchCategories(
       params: wp.ParamsCategoryList(
@@ -114,6 +123,7 @@ Future<Site> fromWordPress(String wordpressUrl) async {
       ),
       fetchAll: true);
 
+  print('Ok, great - now for all the in memory stuff');
   // Load sections.
   final site = Site()
     ..sections = Map.fromEntries(categories.map((e) => MapEntry(
@@ -127,7 +137,7 @@ Future<Site> fromWordPress(String wordpressUrl) async {
   // Connect sections.
   // Add any categories without parents to topItems.
   for (final category in categories) {
-    if (category.parent != 0) {
+    if (category.parent != 0 && category.parent != null) {
       site.sections[category.parent].content
           .add(SectionContent(sectionId: category.id));
     } else {
@@ -166,22 +176,31 @@ SectionContent _parsePost(Site site, wp.Post post) {
 
   final description = xml.children.map((e) => e.text).join(' ').trim();
 
-  /// TODO: consider if an audio might not have a source set. Perhaps return null,
-  /// don't use.
   if (audios.length == 1) {
-    return SectionContent(
-        media: _toMedia(audios.first, description: description));
+    final media = _toMedia(audios.first, description: description);
+
+    return media == null ? null : SectionContent(media: media);
   } else {
+    final medias =
+        audios.map(_toMedia).where((element) => element != null).toList();
+
+    if (medias.isEmpty) {
+      return null;
+    }
+
     return SectionContent(
-        mediaSection: MediaSection(
-            description: description, media: audios.map(_toMedia)));
+        mediaSection: MediaSection(description: description, media: medias));
   }
 }
 
 Media _toMedia(Element element, {String description}) {
   element.remove();
-  final audioSource = element.querySelector('audio').attributes['src'];
-  final audioTitle = element.querySelector('figcaption').text?.trim();
+  final audioSource = element.querySelector('audio')?.attributes['src'];
+  final audioTitle = element.querySelector('figcaption')?.text?.trim();
+
+  if (audioSource?.isEmpty ?? true) {
+    return null;
+  }
 
   return Media(
       source: audioSource, title: audioTitle, description: description);
