@@ -21,6 +21,16 @@ class Site {
 
   /// Flatten the category tree as much as possible.
   void compressSections() {
+    while (true) {
+      // Merge any section which has little content into its parent.
+      final sectionsRemoved = sections.values
+          .where((element) => element.audioCount < 2)
+          .where((element) => element.removeFrom(this));
+
+      if (sectionsRemoved.isEmpty) {
+        return;
+      }
+    }
   }
 
   /// Go through all the data and update the [Section.audioCount].
@@ -107,7 +117,12 @@ Future<Site> fromWordPress(String wordpressUrl) async {
   // Load sections.
   final site = Site()
     ..sections = Map.fromEntries(categories.map((e) => MapEntry(
-        e.id, Section(id: e.id, description: e.description, title: e.name))));
+        e.id,
+        Section(
+            id: e.id,
+            description: e.description,
+            title: e.name,
+            parentId: e.parent))));
 
   // Connect sections.
   // Add any categories without parents to topItems.
@@ -123,6 +138,10 @@ Future<Site> fromWordPress(String wordpressUrl) async {
   // Load posts
   for (final post in posts) {
     final content = _parsePost(site, post);
+
+    if (content == null) {
+      continue;
+    }
 
     for (final categoryId in post.categoryIDs) {
       site.sections[categoryId].content.add(content);
@@ -147,6 +166,8 @@ SectionContent _parsePost(Site site, wp.Post post) {
 
   final description = xml.children.map((e) => e.text).join(' ').trim();
 
+  /// TODO: consider if an audio might not have a source set. Perhaps return null,
+  /// don't use.
   if (audios.length == 1) {
     return SectionContent(
         media: _toMedia(audios.first, description: description));

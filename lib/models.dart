@@ -20,7 +20,7 @@ class Section extends SiteDataItem {
   final int audioCount;
   final List<SectionContent> content;
   @JsonKey(ignore: true)
-  final List<int> parentIds;
+  final int parentId;
 
   Section(
       {this.id,
@@ -28,7 +28,7 @@ class Section extends SiteDataItem {
       String description,
       List<SectionContent> content,
       this.audioCount,
-      this.parentIds})
+      this.parentId})
       : content = content ?? List(),
         super(title: title, description: description) {
     ;
@@ -37,25 +37,53 @@ class Section extends SiteDataItem {
   Map<String, dynamic> toJson() => _$SectionToJson(this);
   Section.fromJson(Map<String, dynamic> json) : this();
 
-  Section copyWith({int audioCount}) => Section(
-        id: id,
-        audioCount: audioCount,
-        content: content,
-        title: title,
-        description: description,
-      );
+  Section copyWith({int audioCount, int parentId}) => Section(
+      id: id,
+      audioCount: audioCount,
+      content: content,
+      title: title,
+      description: description,
+      parentId: parentId ?? this.parentId);
 
   /// Remove this section from the site. If it has any children, they will be
   /// attached to all parents of this section.
-  void removeFrom(Site site) {
-    final parents = parentIds.map((e) => site.sections[e]);
+  /// Returns true if the item is able to be removed.
+  bool removeFrom(Site site) {
+    // If this is a top level item, get rid of it if we can.
+    if (parentId == null || parentId == 0) {
+      if (audioCount == 0) {
+        site.sections.remove(id);
 
-    for (final section in parents) {
-      final index = section.content.indexWhere((element) => element.sectionId == id);
-      section.content.replaceRange(index, index + 1, section.content);
+        site.topItems.removeWhere((element) => element.sectionId == id);
+
+        return true;
+      }
+
+      return false;
+    }
+
+    final parent = site.sections[parentId];
+    final index =
+        parent.content.indexWhere((element) => element.sectionId == id);
+
+    // Save content if there is any.
+    if (audioCount > 0) {
+      parent.content.replaceRange(index, index + 1, content);
+    } else {
+      parent.content.removeAt(index);
     }
 
     site.sections.remove(id);
+
+    // Give all children a new parent. Namely, the parent of this section, which
+    // is being rmeoved.
+    for (final section in content
+        .where((element) => element.sectionId != null)
+        .map((e) => site.sections[e.sectionId])) {
+      site.sections[section.id] = section.copyWith(parentId: parentId);
+    }
+
+    return true;
   }
 }
 
