@@ -1,0 +1,3 @@
+[submodule "scriptlets"]
+	path = scriptlets
+	url = git@github.com:yringler/scriptlets.git
