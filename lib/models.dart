@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:inside_api/site.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -77,8 +78,8 @@ class Section extends SiteDataItem {
         parent.content.removeAt(index);
       }
     } else {
-      print("...That wasn't supposed to happen");
-      print(json.encode(this));
+      stderr.writeln("...That wasn't supposed to happen");
+      stderr.writeln(json.encode(this));
     }
 
     site.sections.remove(id);

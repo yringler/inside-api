@@ -8,4 +8,4 @@ build/
 # Directory created by dartdoc
 doc/api/
 
-data.json
+*.json
