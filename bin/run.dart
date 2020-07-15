@@ -21,7 +21,7 @@ void main(List<String> arguments) async {
       .where((element) => element != null)
       // There's this one blob URL - blob:https://insidechassidus.org/5522f127-0038-42e0-abef-2710100ee32a
       // Something to look in to.
-      .where((element) => element.endsWith('.mp3'))
+      .where((element) => element.toLowerCase().endsWith('.mp3'))
       .toSet()
       .toList()
         ..sort();
