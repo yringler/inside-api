@@ -38,7 +38,8 @@ class Section extends SiteDataItem {
   }
 
   Map<String, dynamic> toJson() => _$SectionToJson(this);
-  Section.fromJson(Map<String, dynamic> json) : this();
+  factory Section.fromJson(Map<String, dynamic> json) =>
+      _$SectionFromJson(json);
 
   Section copyWith({int audioCount, int parentId}) => Section(
       id: id,
@@ -116,7 +117,8 @@ class SectionContent {
   }
 
   Map<String, dynamic> toJson() => _$SectionContentToJson(this);
-  SectionContent.fromJson(Map<String, dynamic> json) : this();
+  factory SectionContent.fromJson(Map<String, dynamic> json) =>
+      _$SectionContentFromJson(json);
 }
 
 @JsonSerializable()
@@ -133,7 +135,7 @@ class Media extends SiteDataItem {
   Duration get length => Duration(milliseconds: _length);
 
   Map<String, dynamic> toJson() => _$MediaToJson(this);
-  Media.fromJson(Map<String, dynamic> json) : this();
+  factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
 
   Media copyWith({Duration length}) => Media(
       description: description,
@@ -153,7 +155,8 @@ class MediaSection extends SiteDataItem {
       : super(title: title, description: description);
 
   Map<String, dynamic> toJson() => _$MediaSectionToJson(this);
-  MediaSection.fromJson(Map<String, dynamic> json) : this();
+  factory MediaSection.fromJson(Map<String, dynamic> json) =>
+      _$MediaSectionFromJson(json);
 }
 
 @JsonSerializable()
@@ -164,5 +167,6 @@ class TopItem {
   TopItem({this.sectionId, this.image});
 
   Map<String, dynamic> toJson() => _$TopItemToJson(this);
-  TopItem.fromJson(Map<String, dynamic> json) : this();
+  factory TopItem.fromJson(Map<String, dynamic> json) =>
+      _$TopItemFromJson(json);
 }

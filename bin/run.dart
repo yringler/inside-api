@@ -26,6 +26,6 @@ void main(List<String> arguments) async {
       .toList()
         ..sort();
 
-  final durationFile = File('durations.json');
-  await durationFile.writeAsString(json.encode(media));
+  final classList = File('classes.json');
+  await classList.writeAsString(json.encode(media));
 }

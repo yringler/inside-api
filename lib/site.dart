@@ -17,7 +17,7 @@ class Site {
 
   Site();
 
-  Site.fromJson(Map<String, dynamic> json);
+  factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
   /// Flatten the category tree as much as possible.
   void compressSections() {
