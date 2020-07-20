@@ -157,6 +157,9 @@ class MediaSection extends SiteDataItem {
   Map<String, dynamic> toJson() => _$MediaSectionToJson(this);
   factory MediaSection.fromJson(Map<String, dynamic> json) =>
       _$MediaSectionFromJson(json);
+
+  MediaSection copyWith(List<Media> media) => MediaSection(
+      description: description, media: media ?? this.media, title: title);
 }
 
 @JsonSerializable()
