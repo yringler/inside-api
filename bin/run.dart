@@ -45,8 +45,7 @@ void main(List<String> arguments) async {
   await classList.writeAsString(json.encode(allValidMedia));
 
   setSiteDuration(site);
-  final modifiedSiteFile = File('durationedSite.json');
-  modifiedSiteFile.writeAsStringSync(json.encode(site));
+  file.writeAsStringSync(json.encode(site));
 }
 
 void setSiteDuration(Site site) {
