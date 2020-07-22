@@ -34,8 +34,9 @@ void main(List<String> arguments) async {
   final allMedia = nestedMedia.toList()
     ..addAll(regularMedia)
     ..toSet()
-    ..toList()
-    ..sort();
+    ..toList();
+
+  allMedia.sort();
 
   final allValidMedia = allMedia
       .where((element) => element.toLowerCase().endsWith('.mp3'))

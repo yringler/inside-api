@@ -165,9 +165,10 @@ class MediaSection extends SiteDataItem {
 @JsonSerializable()
 class TopItem {
   final int sectionId;
+  final String title;
   final String image;
 
-  TopItem({this.sectionId, this.image});
+  TopItem({this.sectionId, this.image, this.title});
 
   Map<String, dynamic> toJson() => _$TopItemToJson(this);
   factory TopItem.fromJson(Map<String, dynamic> json) =>

@@ -141,7 +141,7 @@ Future<Site> fromWordPress(String wordpressUrl) async {
       site.sections[category.parent].content
           .add(SectionContent(sectionId: category.id));
     } else {
-      site.topItems.add(TopItem(sectionId: category.id));
+      site.topItems.add(TopItem(sectionId: category.id, title: category.name));
     }
   }
 

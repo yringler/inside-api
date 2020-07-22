@@ -87,10 +87,12 @@ TopItem _$TopItemFromJson(Map<String, dynamic> json) {
   return TopItem(
     sectionId: json['sectionId'] as int,
     image: json['image'] as String,
+    title: json['title'] as String,
   );
 }
 
 Map<String, dynamic> _$TopItemToJson(TopItem instance) => <String, dynamic>{
       'sectionId': instance.sectionId,
+      'title': instance.title,
       'image': instance.image,
     };
