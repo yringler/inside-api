@@ -31,10 +31,10 @@ void main(List<String> arguments) async {
       .map((e) => e.media.source)
       .toList();
 
-  final allMedia = nestedMedia.toList()
-    ..addAll(regularMedia)
-    ..toSet()
-    ..toList();
+  var allMedia = nestedMedia.toList()
+    ..addAll(regularMedia);
+  
+  allMedia = allMedia.toSet().toList();
 
   allMedia.sort();
 

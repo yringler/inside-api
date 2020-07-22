@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:hive/hive.dart';
 import 'package:inside_api/site.dart';
 import 'package:json_annotation/json_annotation.dart';
 export 'site.dart';
@@ -9,20 +10,26 @@ part 'models.g.dart';
 
 /// Basic site data which is common to all particular site data items.
 abstract class SiteDataItem {
+  @HiveField(0)
   final String title;
+  @HiveField(1)
   final String description;
 
   SiteDataItem({this.description, this.title});
 }
 
+@HiveType(typeId: 1)
 @JsonSerializable()
 
 /// Onne section. A section contains any amount of media or child sections.
 class Section extends SiteDataItem {
+  @HiveField(2)
   final int id;
+  @HiveField(3)
   final int audioCount;
+  @HiveField(4)
   final List<SectionContent> content;
-  @JsonKey(ignore: true)
+  @HiveField(5)
   final int parentId;
 
   Section(
@@ -98,13 +105,17 @@ class Section extends SiteDataItem {
 }
 
 @JsonSerializable()
+@HiveType(typeId: 2)
 
 /// One item contained in a section. May be any one of a reference to a section,
 /// a media item, or a small section.
 /// It is an error to provide two data points to one [SectionContent].
 class SectionContent {
+  @HiveField(0)
   final int sectionId;
+  @HiveField(1)
   final Media media;
+  @HiveField(2)
   final MediaSection mediaSection;
 
   SectionContent({this.sectionId, this.media, this.mediaSection}) {
@@ -121,11 +132,14 @@ class SectionContent {
       _$SectionContentFromJson(json);
 }
 
+@HiveType(typeId: 3)
 @JsonSerializable()
 
 /// One lecture. For now, only supports video.
 class Media extends SiteDataItem {
+  @HiveField(2)
   final String source;
+  @HiveField(3)
   final int _length;
 
   Media({this.source, Duration length, String title, String description})
@@ -144,11 +158,13 @@ class Media extends SiteDataItem {
       title: title);
 }
 
+@HiveType(typeId: 4)
 @JsonSerializable()
 
 /// A small section is a special case of section which only contains media
 /// items.
 class MediaSection extends SiteDataItem {
+  @HiveField(2)
   final List<Media> media;
 
   MediaSection({this.media, title, String description})
@@ -162,15 +178,31 @@ class MediaSection extends SiteDataItem {
       description: description, media: media ?? this.media, title: title);
 }
 
+@HiveType(typeId: 5)
 @JsonSerializable()
 class TopItem {
+  @HiveField(0)
   final int sectionId;
+  @HiveField(1)
   final String title;
-  final String image;
+  
+  String get image => _topImage[sectionId];
 
-  TopItem({this.sectionId, this.image, this.title});
+  TopItem({this.sectionId, this.title});
 
   Map<String, dynamic> toJson() => _$TopItemToJson(this);
   factory TopItem.fromJson(Map<String, dynamic> json) =>
       _$TopItemFromJson(json);
 }
+
+const _topImage = {
+  21: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
+  4: 'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
+  56: 'https://insidechassidus.org/wp-content/uploads/History-and-Kaballah.jpg',
+  28: 'https://insidechassidus.org/wp-content/uploads/Maamarim-and-handwriting.jpg',
+  34: 'https://insidechassidus.org/wp-content/uploads/Rebbe-Sicha-and-Lekutei-Sichos.jpg',
+  45: 'https://insidechassidus.org/wp-content/uploads/Talks-by-Rabbi-Paltiel.jpg',
+  14: 'https://insidechassidus.org/wp-content/uploads/Tanya-Audio-Classes-Alter-Rebbe-2.jpg',
+  40: 'https://insidechassidus.org/wp-content/uploads/Tefillah.jpg',
+  13: 'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg'
+};

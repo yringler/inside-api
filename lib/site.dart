@@ -1,3 +1,4 @@
+import 'package:hive/hive.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -12,10 +13,11 @@ part 'site.g.dart';
 class Site {
   Map<int, Section> sections = Map();
   List<TopItem> topItems = List();
+  final int createdDate;
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);
 
-  Site();
+  Site({this.createdDate});
 
   factory Site.fromJson(Map<String, dynamic> json) => _$SiteFromJson(json);
 
@@ -125,7 +127,7 @@ Future<Site> fromWordPress(String wordpressUrl) async {
 
   print('Ok, great - now for all the in memory stuff');
   // Load sections.
-  final site = Site()
+  final site = Site(createdDate: DateTime.now().millisecondsSinceEpoch)
     ..sections = Map.fromEntries(categories.map((e) => MapEntry(
         e.id,
         Section(
@@ -157,6 +159,18 @@ Future<Site> fromWordPress(String wordpressUrl) async {
       site.sections[categoryId].content.add(content);
     }
   }
+
+  final topItemsNoImage = site.topItems
+      .where((element) => element.image == null)
+      .map((e) => e.sectionId)
+      .toList();
+
+  for (final id in topItemsNoImage) {
+    site.sections.remove(id);
+  }
+
+  site.topItems =
+      site.topItems.where((element) => element.image != null).toList();
 
   return site;
 }
