@@ -96,6 +96,6 @@ Future<SiteBoxes> _getSiteBoxesNoData({String path}) async {
   return SiteBoxes(
       hive: hive,
       data: await hive.openBox('data'),
-      sections: await hive.openLazyBox('sections'),
+      sections: await hive.openLazyBox<Section>('sections'),
       topItems: await hive.openBox<TopItem>('topitems'));
 }
