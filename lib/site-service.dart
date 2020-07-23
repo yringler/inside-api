@@ -11,7 +11,7 @@ import 'package:inside_api/models.dart';
 /// [rawData] is the entirety of the site JSON.
 Future<SiteBoxes> getSiteBoxesWithData(
     {String hivePath, DateTime currentVersion, String rawData}) async {
-  final boxes = await _getSiteBoxesNoData();
+  final boxes = await _getSiteBoxesNoData(path: hivePath);
 
   if (boxes.createdDate != null &&
       (currentVersion == null ||
