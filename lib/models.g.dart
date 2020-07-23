@@ -20,7 +20,9 @@ class SectionAdapter extends TypeAdapter<Section> {
       id: fields[2] as int,
       audioCount: fields[3] as int,
       parentId: fields[5] as int,
-    );
+    )
+      ..title = fields[0] as String
+      ..description = fields[1] as String;
   }
 
   @override
@@ -85,7 +87,9 @@ class MediaAdapter extends TypeAdapter<Media> {
     return Media(
       source: fields[2] as String,
       parentId: fields[4] as int,
-    );
+    )
+      ..title = fields[0] as String
+      ..description = fields[1] as String;
   }
 
   @override
@@ -118,7 +122,9 @@ class MediaSectionAdapter extends TypeAdapter<MediaSection> {
     return MediaSection(
       media: (fields[2] as List)?.cast<Media>(),
       parentId: fields[3] as int,
-    );
+    )
+      ..title = fields[0] as String
+      ..description = fields[1] as String;
   }
 
   @override
@@ -170,7 +176,7 @@ class TopItemAdapter extends TypeAdapter<TopItem> {
 Section _$SectionFromJson(Map<String, dynamic> json) {
   return Section(
     id: json['id'] as int,
-    title: json['title'] as String,
+    title: json['title'],
     description: json['description'] as String,
     content: (json['content'] as List)
         ?.map((e) => e == null

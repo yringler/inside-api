@@ -10,13 +10,11 @@ export 'site.dart';
 part 'models.g.dart';
 
 /// Basic site data which is common to all particular site data items.
-abstract class SiteDataItem {
+class SiteDataItem {
   @HiveField(0)
-  final String title;
+  String title;
   @HiveField(1)
-  final String description;
-
-  SiteDataItem({this.description, this.title});
+  String description;
 }
 
 abstract class CountableSiteDataItem implements SiteDataItem {
@@ -40,7 +38,7 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
 
   Section(
       {this.id,
-      String title,
+      title,
       String description,
       List<SectionContent> content,
       this.audioCount,
