@@ -36,16 +36,16 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(5)
   final int parentId;
 
-  Section(
-      {this.id,
-      title,
-      String description,
-      List<SectionContent> content,
-      this.audioCount,
-      this.parentId})
-      : content = content ?? List(),
-        super(title: title, description: description) {
-    ;
+  Section({
+    this.id,
+    title,
+    String description,
+    List<SectionContent> content,
+    this.audioCount,
+    this.parentId,
+  }) : content = content ?? List() {
+    this.title = title;
+    this.description = description;
   }
 
   Map<String, dynamic> toJson() => _$SectionToJson(this);
@@ -157,8 +157,10 @@ class Media extends SiteDataItem {
       Duration length,
       String title,
       String description})
-      : _length = length?.inMilliseconds ?? 0,
-        super(title: title, description: description);
+      : _length = length?.inMilliseconds ?? 0 {
+    this.title = title;
+    this.description = description;
+  }
 
   Duration get length => Duration(milliseconds: _length);
 
@@ -183,8 +185,10 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(3)
   final int parentId;
 
-  MediaSection({this.media, this.parentId, title, String description})
-      : super(title: title, description: description);
+  MediaSection({this.media, this.parentId, title, String description}) {
+    this.title = title;
+    this.description = description;
+  }
 
   Map<String, dynamic> toJson() => _$MediaSectionToJson(this);
   factory MediaSection.fromJson(Map<String, dynamic> json) =>
