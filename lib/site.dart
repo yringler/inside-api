@@ -188,29 +188,47 @@ SectionContent _parsePost(Site site, wp.Post post) {
     return null;
   }
 
-  final description = xml.children.map((e) => e.text).join(' ').trim();
+  var description = xml.children.map((e) => e.text).join(' ').trim();
+
+  // If it doesn't have a good description, forget about it.
+  // In particular, sometimes the description will be "MP3"
+  if (description.length < 4) {
+    description = null;
+  }
 
   if (audios.length == 1) {
-    final media = _toMedia(audios.first, description: description);
+    final media = _toMedia(audios.first,
+        description: description, title: post.title.rendered);
 
     return media == null ? null : SectionContent(media: media);
   } else {
     final medias =
         audios.map(_toMedia).where((element) => element != null).toList();
 
+    // Give any media without a good title the title of the post with a counter.
+    for (var i = 0; i < medias.length; ++i) {
+      if ((medias[i].title?.length ?? 0) <= 3 &&
+          (post.title.rendered?.length ?? 0) > 3) {
+        medias[i].title = '${post.title.rendered}: Class ${i + 1}';
+      }
+    }
+
     if (medias.isEmpty) {
       return null;
     }
 
     return SectionContent(
-        mediaSection: MediaSection(description: description, media: medias));
+        mediaSection: MediaSection(
+            description: description,
+            media: medias,
+            title: post.title.rendered));
   }
 }
 
-Media _toMedia(Element element, {String description}) {
+Media _toMedia(Element element, {String description, String title}) {
   element.remove();
   final audioSource = element.querySelector('audio')?.attributes['src'];
-  final audioTitle = element.querySelector('figcaption')?.text?.trim();
+  final audioTitle = title ?? element.querySelector('figcaption')?.text?.trim();
 
   if (audioSource?.isEmpty ?? true) {
     return null;

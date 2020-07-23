@@ -149,6 +149,7 @@ class Media extends SiteDataItem {
   @HiveField(3)
   final int _length;
   @HiveField(4)
+  /// This field isn't used yet.
   final int parentId;
 
   Media(
@@ -183,9 +184,10 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(2)
   final List<Media> media;
   @HiveField(3)
+  /// This field isn't used yet.
   final int parentId;
 
-  MediaSection({this.media, this.parentId, title, String description}) {
+  MediaSection({this.media, this.parentId, String title, String description}) {
     this.title = title;
     this.description = description;
   }

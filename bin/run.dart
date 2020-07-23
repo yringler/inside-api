@@ -31,9 +31,8 @@ void main(List<String> arguments) async {
       .map((e) => e.media.source)
       .toList();
 
-  var allMedia = nestedMedia.toList()
-    ..addAll(regularMedia);
-  
+  var allMedia = nestedMedia.toList()..addAll(regularMedia);
+
   allMedia = allMedia.toSet().toList();
 
   allMedia.sort();
@@ -42,11 +41,13 @@ void main(List<String> arguments) async {
       .where((element) => element.toLowerCase().endsWith('.mp3'))
       .toList();
 
+  final encoder = JsonEncoder.withIndent('\t');
+
   final classList = File('scriptlets/audiolength/classlist.json');
-  await classList.writeAsString(json.encode(allValidMedia));
+  await classList.writeAsString(encoder.convert(allValidMedia));
 
   setSiteDuration(site);
-  file.writeAsStringSync(json.encode(site));
+  file.writeAsStringSync(encoder.convert(site));
 }
 
 void setSiteDuration(Site site) {
