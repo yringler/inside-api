@@ -32,7 +32,7 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(3)
   final int audioCount;
   @HiveField(4)
-  final List<SectionContent> content;
+  List<SectionContent> content;
   @HiveField(5)
   final int parentId;
 

@@ -21,6 +21,7 @@ class SectionAdapter extends TypeAdapter<Section> {
       audioCount: fields[3] as int,
       parentId: fields[5] as int,
     )
+      ..content = (fields[4] as List)?.cast<SectionContent>()
       ..title = fields[0] as String
       ..description = fields[1] as String;
   }
