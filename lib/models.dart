@@ -198,7 +198,6 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
       description: description, media: media ?? this.media, title: title);
 
   @override
-  // TODO: implement audioCount
   int get audioCount => media.length;
 }
 
