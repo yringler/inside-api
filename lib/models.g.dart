@@ -84,17 +84,20 @@ class MediaAdapter extends TypeAdapter<Media> {
     };
     return Media(
       source: fields[2] as String,
+      parentId: fields[4] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, Media obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(2)
       ..write(obj.source)
       ..writeByte(3)
       ..write(obj._length)
+      ..writeByte(4)
+      ..write(obj.parentId)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -114,15 +117,18 @@ class MediaSectionAdapter extends TypeAdapter<MediaSection> {
     };
     return MediaSection(
       media: (fields[2] as List)?.cast<Media>(),
+      parentId: fields[3] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, MediaSection obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(2)
       ..write(obj.media)
+      ..writeByte(3)
+      ..write(obj.parentId)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -194,7 +200,9 @@ SectionContent _$SectionContentFromJson(Map<String, dynamic> json) {
     mediaSection: json['mediaSection'] == null
         ? null
         : MediaSection.fromJson(json['mediaSection'] as Map<String, dynamic>),
-  );
+  )..section = json['section'] == null
+      ? null
+      : Section.fromJson(json['section'] as Map<String, dynamic>);
 }
 
 Map<String, dynamic> _$SectionContentToJson(SectionContent instance) =>
@@ -202,11 +210,13 @@ Map<String, dynamic> _$SectionContentToJson(SectionContent instance) =>
       'sectionId': instance.sectionId,
       'media': instance.media,
       'mediaSection': instance.mediaSection,
+      'section': instance.section,
     };
 
 Media _$MediaFromJson(Map<String, dynamic> json) {
   return Media(
     source: json['source'] as String,
+    parentId: json['parentId'] as int,
     length: json['length'] == null
         ? null
         : Duration(microseconds: json['length'] as int),
@@ -219,6 +229,7 @@ Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
       'title': instance.title,
       'description': instance.description,
       'source': instance.source,
+      'parentId': instance.parentId,
       'length': instance.length?.inMicroseconds,
     };
 
@@ -228,6 +239,7 @@ MediaSection _$MediaSectionFromJson(Map<String, dynamic> json) {
         ?.map(
             (e) => e == null ? null : Media.fromJson(e as Map<String, dynamic>))
         ?.toList(),
+    parentId: json['parentId'] as int,
     title: json['title'],
     description: json['description'] as String,
   );
@@ -238,16 +250,20 @@ Map<String, dynamic> _$MediaSectionToJson(MediaSection instance) =>
       'title': instance.title,
       'description': instance.description,
       'media': instance.media,
+      'parentId': instance.parentId,
     };
 
 TopItem _$TopItemFromJson(Map<String, dynamic> json) {
   return TopItem(
     sectionId: json['sectionId'] as int,
     title: json['title'] as String,
-  );
+  )..section = json['section'] == null
+      ? null
+      : Section.fromJson(json['section'] as Map<String, dynamic>);
 }
 
 Map<String, dynamic> _$TopItemToJson(TopItem instance) => <String, dynamic>{
       'sectionId': instance.sectionId,
       'title': instance.title,
+      'section': instance.section,
     };

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:hive/hive.dart';
 import 'package:inside_api/site.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'site-service.dart';
 export 'site.dart';
 
 part 'models.g.dart';
@@ -18,13 +19,18 @@ abstract class SiteDataItem {
   SiteDataItem({this.description, this.title});
 }
 
+abstract class CountableSiteDataItem implements SiteDataItem {
+  int get audioCount;
+}
+
 @HiveType(typeId: 1)
 @JsonSerializable()
 
 /// Onne section. A section contains any amount of media or child sections.
-class Section extends SiteDataItem {
+class Section extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(2)
   final int id;
+  @override
   @HiveField(3)
   final int audioCount;
   @HiveField(4)
@@ -118,6 +124,9 @@ class SectionContent {
   @HiveField(2)
   final MediaSection mediaSection;
 
+  /// Will be null unless used after [SiteBoxes.resolve]
+  Section section;
+
   SectionContent({this.sectionId, this.media, this.mediaSection}) {
     if ([sectionId, media, mediaSection]
             .where((element) => element != null)
@@ -141,8 +150,15 @@ class Media extends SiteDataItem {
   final String source;
   @HiveField(3)
   final int _length;
+  @HiveField(4)
+  final int parentId;
 
-  Media({this.source, Duration length, String title, String description})
+  Media(
+      {this.source,
+      this.parentId,
+      Duration length,
+      String title,
+      String description})
       : _length = length?.inMilliseconds ?? 0,
         super(title: title, description: description);
 
@@ -163,11 +179,13 @@ class Media extends SiteDataItem {
 
 /// A small section is a special case of section which only contains media
 /// items.
-class MediaSection extends SiteDataItem {
+class MediaSection extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(2)
   final List<Media> media;
+  @HiveField(3)
+  final int parentId;
 
-  MediaSection({this.media, title, String description})
+  MediaSection({this.media, this.parentId, title, String description})
       : super(title: title, description: description);
 
   Map<String, dynamic> toJson() => _$MediaSectionToJson(this);
@@ -176,6 +194,10 @@ class MediaSection extends SiteDataItem {
 
   MediaSection copyWith(List<Media> media) => MediaSection(
       description: description, media: media ?? this.media, title: title);
+
+  @override
+  // TODO: implement audioCount
+  int get audioCount => media.length;
 }
 
 @HiveType(typeId: 5)
@@ -185,7 +207,8 @@ class TopItem {
   final int sectionId;
   @HiveField(1)
   final String title;
-  
+  Section section;
+
   String get image => _topImage[sectionId];
 
   TopItem({this.sectionId, this.title});

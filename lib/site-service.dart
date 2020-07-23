@@ -8,9 +8,9 @@ import 'package:inside_api/models.dart';
 
 /// [hivePath] is where the data should be stored.
 /// [currentVersion] is the date which any saved data should be newer than or equal to.
-/// [dataSource] is (for now) a file path which contains JSON of the entire site.
+/// [rawData] is the entirety of the site JSON.
 Future<SiteBoxes> getSiteBoxesWithData(
-    {String hivePath, DateTime currentVersion, String dataSource}) async {
+    {String hivePath, DateTime currentVersion, String rawData}) async {
   final boxes = await _getSiteBoxesNoData();
 
   if (boxes.createdDate != null &&
@@ -28,8 +28,7 @@ Future<SiteBoxes> getSiteBoxesWithData(
   final completer = Completer();
   final recievePort = ReceivePort();
 
-  await Isolate.spawn(
-      _setHiveData, [recievePort.sendPort, hivePath, dataSource]);
+  await Isolate.spawn(_setHiveData, [recievePort.sendPort, hivePath, rawData]);
 
   recievePort.listen((_) => completer.complete());
 
@@ -54,6 +53,38 @@ class SiteBoxes {
   Future<void> setCreatedDate(DateTime value) async =>
       data.put('key', value.millisecondsSinceEpoch);
 
+  /// Goes through all content and loads any sections.
+  Future<Section> resolve(Section section) async {
+    final nullSectionContent = section.content.where(
+        (element) => element.sectionId != null && element.section == null);
+
+    final sectionFutures =
+        nullSectionContent.map((e) => sections.get(e.sectionId));
+
+    if (sectionFutures.isEmpty) {
+      return section;
+    }
+
+    final sectionMap = Map.fromEntries(
+        (await Future.wait(sectionFutures)).map((e) => MapEntry(e.id, e)));
+
+    for (final s in nullSectionContent) {
+      s.section = sectionMap[s.sectionId];
+    }
+
+    return section;
+  }
+
+  Future<void> _setTopSections() async {
+    if (topItems.isEmpty) {
+      return;
+    }
+
+    for (final top in topItems.values) {
+      top.section = await sections.get(top.sectionId);
+    }
+  }
+
   SiteBoxes({this.hive, this.sections, this.topItems, this.data});
 }
 
@@ -62,9 +93,9 @@ void _setHiveData(dynamic arguments) async {
   final dynamicArguments = List.castFrom(arguments);
   final sendPort = dynamicArguments[0] as SendPort;
   final hivePath = dynamicArguments[1] as String;
-  final dataSource = dynamicArguments[2] as String;
+  final rawJson = dynamicArguments[2] as String;
 
-  final site = Site.fromJson(json.decode(File(dataSource).readAsStringSync()));
+  final site = Site.fromJson(json.decode(rawJson));
   final boxes = await _getSiteBoxesNoData(path: hivePath);
 
   await boxes.sections.putAll(site.sections);
@@ -93,9 +124,13 @@ Future<SiteBoxes> _getSiteBoxesNoData({String path}) async {
     hive.registerAdapter(TopItemAdapter());
   } catch (_) {}
 
-  return SiteBoxes(
+  final siteBoxes = SiteBoxes(
       hive: hive,
       data: await hive.openBox('data'),
       sections: await hive.openLazyBox<Section>('sections'),
       topItems: await hive.openBox<TopItem>('topitems'));
+
+  await siteBoxes._setTopSections();
+
+  return siteBoxes;
 }
