@@ -51,7 +51,7 @@ class SiteBoxes {
       : null;
 
   Future<void> setCreatedDate(DateTime value) async =>
-      data.put('key', value.millisecondsSinceEpoch);
+      data.put('date', value.millisecondsSinceEpoch);
 
   /// Goes through all content and loads any sections.
   Future<Section> resolve(Section section) async {
