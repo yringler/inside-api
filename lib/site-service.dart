@@ -20,6 +20,10 @@ Future<SiteBoxes> getSiteBoxesWithData(
     return boxes;
   }
 
+  if (rawData == null) {
+    return null;
+  }
+
   // We don't have data, or no current data, so load up the boxes
   // on another isolate.
 
