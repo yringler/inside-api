@@ -46,12 +46,10 @@ class SiteBoxes {
   /// Contians assorted bits of information
   final Box data;
 
-  DateTime get createdDate => data.containsKey('date')
-      ? DateTime.fromMillisecondsSinceEpoch(data.get('date'))
-      : null;
+  DateTime get createdDate =>
+      data.containsKey('date') ? data.get('date') as DateTime : null;
 
-  Future<void> setCreatedDate(DateTime value) async =>
-      data.put('date', value.millisecondsSinceEpoch);
+  Future<void> setCreatedDate(DateTime value) async => data.put('date', value);
 
   /// Goes through all content and loads any sections.
   Future<Section> resolve(Section section) async {
