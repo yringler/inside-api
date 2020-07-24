@@ -89,6 +89,7 @@ class MediaAdapter extends TypeAdapter<Media> {
       source: fields[2] as String,
       parentId: fields[4] as int,
     )
+      .._length = fields[3] as int
       ..title = fields[0] as String
       ..description = fields[1] as String;
   }
@@ -247,7 +248,7 @@ MediaSection _$MediaSectionFromJson(Map<String, dynamic> json) {
             (e) => e == null ? null : Media.fromJson(e as Map<String, dynamic>))
         ?.toList(),
     parentId: json['parentId'] as int,
-    title: json['title'],
+    title: json['title'] as String,
     description: json['description'] as String,
   );
 }
