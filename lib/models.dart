@@ -148,14 +148,17 @@ class Media extends SiteDataItem {
   final String source;
   @HiveField(3)
   int _length;
-  @HiveField(4)
 
   /// This field isn't used yet.
+  @HiveField(4)
   final int parentId;
+  @HiveField(5)
+  final int order;
 
   Media(
       {this.source,
       this.parentId,
+      this.order,
       Duration length,
       String title,
       String description})

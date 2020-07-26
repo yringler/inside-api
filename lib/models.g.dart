@@ -88,6 +88,7 @@ class MediaAdapter extends TypeAdapter<Media> {
     return Media(
       source: fields[2] as String,
       parentId: fields[4] as int,
+      order: fields[5] as int,
     )
       .._length = fields[3] as int
       ..title = fields[0] as String
@@ -97,13 +98,15 @@ class MediaAdapter extends TypeAdapter<Media> {
   @override
   void write(BinaryWriter writer, Media obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(2)
       ..write(obj.source)
       ..writeByte(3)
       ..write(obj._length)
       ..writeByte(4)
       ..write(obj.parentId)
+      ..writeByte(5)
+      ..write(obj.order)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -225,6 +228,7 @@ Media _$MediaFromJson(Map<String, dynamic> json) {
   return Media(
     source: json['source'] as String,
     parentId: json['parentId'] as int,
+    order: json['order'] as int,
     length: json['length'] == null
         ? null
         : Duration(microseconds: json['length'] as int),
@@ -238,6 +242,7 @@ Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
       'description': instance.description,
       'source': instance.source,
       'parentId': instance.parentId,
+      'order': instance.order,
       'length': instance.length?.inMicroseconds,
     };
 

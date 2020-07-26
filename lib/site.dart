@@ -1,4 +1,3 @@
-import 'package:hive/hive.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -115,7 +114,8 @@ Future<Site> fromWordPress(String wordpressUrl) async {
         orderBy: wp.PostOrderBy.date,
       ),
       fetchCategories: true,
-      fetchAll: true);
+      fetchAll: true,
+      customFieldNames: {'menu_order'});
 
   print('loading categories...');
   // Make request.
@@ -160,6 +160,14 @@ Future<Site> fromWordPress(String wordpressUrl) async {
     }
   }
 
+  // Sort sections
+  for (final section in site.sections.values) {
+    section.content.sort((a, b) =>
+        a.media?.order != null && b.media?.order != null
+            ? a.media.order.compareTo(b.media.order)
+            : 0);
+  }
+
   final topItemsNoImage = site.topItems
       .where((element) => element.image == null)
       .map((e) => e.sectionId)
@@ -198,7 +206,10 @@ SectionContent _parsePost(Site site, wp.Post post) {
 
   if (audios.length == 1) {
     final media = _toMedia(audios.first,
-        description: description, title: post.title.rendered);
+        description: description,
+        title: post.title.rendered,
+        order:
+            post.customFields == null ? null : post.customFields['menu_order']);
 
     return media == null ? null : SectionContent(media: media);
   } else {
@@ -225,7 +236,7 @@ SectionContent _parsePost(Site site, wp.Post post) {
   }
 }
 
-Media _toMedia(Element element, {String description, String title}) {
+Media _toMedia(Element element, {String description, String title, int order}) {
   element.remove();
   final audioSource = element.querySelector('audio')?.attributes['src'];
   final audioTitle = title ?? element.querySelector('figcaption')?.text?.trim();
@@ -235,5 +246,8 @@ Media _toMedia(Element element, {String description, String title}) {
   }
 
   return Media(
-      source: audioSource, title: audioTitle, description: description);
+      source: audioSource,
+      title: audioTitle,
+      description: description,
+      order: order);
 }
