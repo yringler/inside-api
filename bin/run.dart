@@ -50,12 +50,13 @@ Future<void> _setCurrentVersionDate(DateTime date) async {
 
 /// Handle - we got a new class!
 Future _updateLatestLocalCloud(Site site) async {
-  final rawContents = currentRawSiteFile.readAsStringSync();
-  File('oldraw.json').writeAsStringSync(rawContents);
+  final rawContents = currentRawSiteFile.existsSync()
+      ? currentRawSiteFile.readAsStringSync()
+      : null;
   final newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if ((!currentRawSiteFile.existsSync()) || (rawContents != newJson)) {
+  if (rawContents != newJson) {
     // Save site as being current.
     await currentRawSiteFile.writeAsString(newJson, flush: true);
 

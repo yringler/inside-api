@@ -165,10 +165,16 @@ Future<Site> fromWordPress(String wordpressUrl,
 
   // Sort sections
   for (final section in site.sections.values) {
-    section.content.sort((a, b) =>
-        a.media?.order != null && b.media?.order != null
-            ? a.media.order.compareTo(b.media.order)
-            : 0);
+    final originalOrder = List.from(section.content);
+    
+    section.content.sort((a, b) {
+      // We have to do this because if we return 0, the order is undefined...
+      if (a.media?.order == null || b.media?.order == null) {
+        return originalOrder.indexOf(a).compareTo(originalOrder.indexOf(b));
+      }
+
+      return a.media.order.compareTo(b.media.order);
+    });
   }
 
   site.topItems =
