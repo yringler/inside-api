@@ -8,7 +8,9 @@ part of 'site.dart';
 
 Site _$SiteFromJson(Map<String, dynamic> json) {
   return Site(
-    createdDate: json['createdDate'] as int,
+    createdDate: json['createdDate'] == null
+        ? null
+        : DateTime.parse(json['createdDate'] as String),
   )
     ..sections = (json['sections'] as Map<String, dynamic>)?.map(
       (k, e) => MapEntry(int.parse(k),
@@ -23,5 +25,5 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{
       'sections': instance.sections?.map((k, e) => MapEntry(k.toString(), e)),
       'topItems': instance.topItems,
-      'createdDate': instance.createdDate,
+      'createdDate': instance.createdDate?.toIso8601String(),
     };

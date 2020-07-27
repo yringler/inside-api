@@ -103,8 +103,7 @@ void _setHiveData(dynamic arguments) async {
   await boxes.sections.putAll(site.sections);
   await boxes.topItems.putAll(
       Map.fromEntries(site.topItems.map((e) => MapEntry(e.sectionId, e))));
-  await boxes
-      .setCreatedDate(DateTime.fromMillisecondsSinceEpoch(site.createdDate));
+  await boxes.setCreatedDate(site.createdDate);
 
   // Close so that can be opened on other isolate.
   await boxes.hive.close();

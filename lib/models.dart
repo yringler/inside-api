@@ -63,7 +63,11 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
   /// Remove this section from the site. If it has any children, they will be
   /// attached to all parents of this section.
   /// Returns true if the item is able to be removed.
-  bool removeFrom(Site site) {
+  bool removeFrom(Site site, Map<int, Section> toRemove) {
+    var parentId = this.parentId;
+    // If this sections parent is also removed, keep track of that id.
+    int removedParentId;
+
     // If this is a top level item, get rid of it if we can.
     if (parentId == null || parentId == 0) {
       if (audioCount == 0) {
@@ -77,27 +81,36 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
       return false;
     }
 
-    final parent = site.sections[parentId];
-    assert(parent != null);
-    final index =
-        parent.content.indexWhere((element) => element.sectionId == id);
+    while (!site.sections.containsKey(parentId) &&
+        toRemove.containsKey(parentId)) {
+      removedParentId = parentId;
+      parentId = toRemove[parentId].parentId;
+    }
 
-    if (index >= 0) {
-      // Save content if there is any.
-      if (audioCount > 0) {
+    if (parentId != 0) {
+      final parent = site.sections[parentId];
+      assert(parent != null);
+
+      // The id which is used to reference the current section in the nearest
+      // parent which isn't removed.
+      final referenceToCurrentInParent = removedParentId ?? id;
+
+      final index = parent.content?.indexWhere(
+              (element) => element.sectionId == referenceToCurrentInParent) ??
+          -1;
+
+      if (index >= 0) {
         parent.content.replaceRange(index, index + 1, content);
       } else {
-        parent.content.removeAt(index);
+        stderr.writeln("...That wasn't supposed to happen");
+        stderr.writeln(json.encode(this));
       }
-    } else {
-      stderr.writeln("...That wasn't supposed to happen");
-      stderr.writeln(json.encode(this));
     }
 
     site.sections.remove(id);
 
     // Give all children a new parent. Namely, the parent of this section, which
-    // is being rmeoved.
+    // is being removed.
     for (final section in content
         .where((element) => element.sectionId != null)
         .map((e) => site.sections[e.sectionId])) {

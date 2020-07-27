@@ -12,7 +12,7 @@ part 'site.g.dart';
 class Site {
   Map<int, Section> sections = Map();
   List<TopItem> topItems = List();
-  final int createdDate;
+  DateTime createdDate;
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);
 
@@ -27,14 +27,12 @@ class Site {
       removedSomething = false;
 
       // Merge any section which has little content into its parent.
-      final sectionsToRemove = sections.values
+      final sectionsToRemove = Map<int, Section>.fromEntries(sections.values
           .where((element) => element.audioCount < 2)
-          .map((e) => e.id)
-          .toList();
+          .map((e) => MapEntry(e.id, e)));
 
-      for (final sectionId in sectionsToRemove) {
-        final section = sections[sectionId];
-        if (section.removeFrom(this)) {
+      for (final section in sectionsToRemove.values) {
+        if (section.removeFrom(this, sectionsToRemove)) {
           removedSomething = true;
         }
       }
@@ -103,38 +101,43 @@ class Site {
   }
 }
 
-Future<Site> fromWordPress(String wordpressUrl) async {
+/// Load site from wordpress. Supports incremental update - if a [base] site is
+/// passed in, will only query posts from after [Site.createdDate].
+Future<Site> fromWordPress(String wordpressUrl,
+    {Site base, DateTime createdDate}) async {
+  final site = base ?? Site();
   final wordPress = wp.WordPress(baseUrl: wordpressUrl);
+
+  final afterDate = createdDate?.toIso8601String() ?? '';
 
   print('loading posts...');
   var posts = await wordPress.fetchPosts(
       postParams: wp.ParamsPostList(
-        context: wp.WordPressContext.view,
-        order: wp.Order.desc,
-        orderBy: wp.PostOrderBy.date,
-      ),
+          context: wp.WordPressContext.view, afterDate: afterDate),
       fetchCategories: true,
       fetchAll: true,
       customFieldNames: {'menu_order'});
 
   print('loading categories...');
   // Make request.
-  var categories = await wordPress.fetchCategories(
-      params: wp.ParamsCategoryList(
-        context: wp.WordPressContext.view,
-      ),
-      fetchAll: true);
+  var categories = (await wordPress.fetchCategories(
+          params: wp.ParamsCategoryList(
+            context: wp.WordPressContext.view,
+          ),
+          fetchAll: true))
+      .where((element) => !site.sections.containsKey(element.id))
+      .toList();
 
-  print('Ok, great - now for all the in memory stuff');
-  // Load sections.
-  final site = Site(createdDate: DateTime.now().millisecondsSinceEpoch)
-    ..sections = Map.fromEntries(categories.map((e) => MapEntry(
-        e.id,
-        Section(
-            id: e.id,
-            description: e.description,
-            title: e.name,
-            parentId: e.parent))));
+  print('Done loading');
+
+  // Load sections. Will not to over-ride any that are already set.
+  site.sections.addAll(Map.fromEntries(categories.map((e) => MapEntry(
+      e.id,
+      Section(
+          id: e.id,
+          description: e.description,
+          title: e.name,
+          parentId: e.parent)))));
 
   // Connect sections.
   // Add any categories without parents to topItems.
@@ -166,15 +169,6 @@ Future<Site> fromWordPress(String wordpressUrl) async {
         a.media?.order != null && b.media?.order != null
             ? a.media.order.compareTo(b.media.order)
             : 0);
-  }
-
-  final topItemsNoImage = site.topItems
-      .where((element) => element.image == null)
-      .map((e) => e.sectionId)
-      .toList();
-
-  for (final id in topItemsNoImage) {
-    site.sections.remove(id);
   }
 
   site.topItems =
