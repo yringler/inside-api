@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart';
 import 'package:inside_api/models.dart';
+import 'package:process_run/process_run.dart' as process;
 
 final encoder = JsonEncoder.withIndent('\t');
 final currentRawSiteFile = File('rawsite.current.json');
@@ -26,10 +27,20 @@ void main(List<String> arguments) async {
 
   site.setAudioCount();
 
-  final classList = File('scriptlets/audiolength/classlist.json');
-  await classList.writeAsString(encoder.convert(_getClassList(site)));
+  final classListFile = File('scriptlets/audiolength/classlist.json');
+  final classList = _getClassList(site);
+  await classListFile.writeAsString(
+      encoder.convert(classList.map((e) => e.source).toSet().toList()));
 
-  _setSiteDuration(site);
+  // Update our duration list if we need to.
+  if (classList
+      .where((element) => element.length == Duration.zero)
+      .isNotEmpty) {
+    print('running check_duration');
+    await process.run('node', ['./scriptlets/audiolength/get_duration.js']);
+  }
+
+  await _setSiteDuration(site);
 
   await _updateLatestLocalCloud(site);
 }
@@ -107,30 +118,30 @@ Future<void> _uploadToDropbox(Site site) async {
   print(shareJson['url']);
 }
 
-List<String> _getClassList(Site site) {
+List<Media> _getClassList(Site site) {
   final siteContent =
       site.sections.values.map((e) => e.content).expand((e) => e).toList();
 
   final nestedMedia = siteContent
       .where((element) => element.mediaSection != null)
       .expand((element) => element.mediaSection.media)
-      .map((e) => e.source)
       .toList();
 
   final regularMedia = siteContent
       .where((element) => element.media != null)
-      .map((e) => e.media.source)
+      .map((e) => e.media)
       .toList();
 
   var allMedia = nestedMedia.toList()..addAll(regularMedia);
 
   allMedia = allMedia.toSet().toList();
 
-  allMedia.sort();
+  allMedia.sort((a, b) => a.source.compareTo(b.source));
 
   final allValidMedia = allMedia
-      .where((element) => element.toLowerCase().endsWith('.mp3'))
+      .where((element) => element.source.toLowerCase().endsWith('.mp3'))
       .toList();
+
   return allValidMedia;
 }
 
@@ -145,21 +156,15 @@ void _setSiteDuration(Site site) {
     for (var i = 0; i < section.content.length; i++) {
       final content = section.content[i];
 
-      if (content.media != null) {
-        section.content.replaceRange(i, i + 1, [
-          SectionContent(
-              media: content.media.copyWith(
-                  length: Duration(
-                      milliseconds: duration[content.media.source] ?? 0)))
-        ]);
+      if (content.media != null && duration[content.media.source] != null) {
+        content.media.length =
+            Duration(milliseconds: duration[content.media.source]);
       } else if (content.mediaSection != null) {
-        final sectionWithDuration = content.mediaSection.media
-            .map((e) => e.copyWith(
-                length: Duration(milliseconds: duration[e.source] ?? 0)))
-            .toList();
-
-        content.mediaSection.media.clear();
-        content.mediaSection.media.addAll(sectionWithDuration);
+        for (final media in content.mediaSection.media) {
+          if (duration[media.source] != null) {
+            media.length = Duration(milliseconds: duration[media.source]);
+          }
+        }
       }
     }
   }

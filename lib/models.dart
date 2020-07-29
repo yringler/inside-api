@@ -181,6 +181,7 @@ class Media extends SiteDataItem {
   }
 
   Duration get length => Duration(milliseconds: _length);
+  set length(Duration value) => _length = value.inMilliseconds;
 
   Map<String, dynamic> toJson() => _$MediaToJson(this);
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);

@@ -17,6 +17,7 @@ dependencies:
   hive: ^1.4.1+1
   http: ^0.12.2
   http_parser: ^3.1.4
+  process_run: ^0.10.10+2
 dev_dependencies:
   pedantic: ^1.9.0
   json_serializable: ^3.3.0
