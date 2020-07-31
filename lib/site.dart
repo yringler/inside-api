@@ -42,7 +42,10 @@ class Site {
       removedSomething = false;
 
       // Merge any section which has little content into its parent.
-      final sectionsToRemove = sections.keys.toList();
+      final sectionsToRemove = sections.values
+          .where((element) => element.audioCount == 1)
+          .map((e) => e.id)
+          .toList();
 
       for (final id in sectionsToRemove) {
         if (sections[id].removeFrom(this)) {
