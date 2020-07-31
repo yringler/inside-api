@@ -193,8 +193,11 @@ Future<Site> fromWordPress(String wordpressUrl,
     final originalOrder = List.from(section.content);
 
     section.content.sort((a, b) {
-      if (a.media?.order != null && b.media?.order != null) {
-        return a.media.order.compareTo(b.media.order);
+      final aMediaSort = a.media?.order ?? a.mediaSection?.order;
+      final bMediaSort = b.media?.order ?? b.mediaSection?.order;
+
+      if (aMediaSort != null && bMediaSort != null) {
+        return aMediaSort.compareTo(bMediaSort);
       }
       if (a.sectionId != null && b.sectionId != null) {
         final sectionAOrder = sectionOrder[a.sectionId];
