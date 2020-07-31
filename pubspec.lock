@@ -165,9 +165,11 @@ packages:
   flutter_wordpress:
     dependency: "direct main"
     description:
-      path: "../flutter_wordpress"
-      relative: true
-    source: path
+      path: "."
+      ref: d684ae28f16e08c822cfc4080fe98e14c8ba533b
+      resolved-ref: d684ae28f16e08c822cfc4080fe98e14c8ba533b
+      url: "https://github.com/yringler/flutter_wordpress/"
+    source: git
     version: "0.2.2"
   glob:
     dependency: transitive
