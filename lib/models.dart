@@ -214,7 +214,7 @@ class TopItem {
   final String title;
   Section section;
 
-  String get image => _topImage[sectionId];
+  String get image => topImages[sectionId];
 
   TopItem({this.sectionId, this.title});
 
@@ -235,7 +235,7 @@ class TopItem {
 //   13: 'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg'
 // };
 
-const _topImage = {
+const topImages = {
   16: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
   1475:
       'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
@@ -246,5 +246,7 @@ const _topImage = {
   6: 'https://insidechassidus.org/wp-content/uploads/Tanya-Audio-Classes-Alter-Rebbe-2.jpg',
   15: 'https://insidechassidus.org/wp-content/uploads/Tefillah.jpg',
   1447:
-      'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg'
+      'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg',
+  1104:
+      'https://insidechassidus.org/wp-content/uploads/stories-of-rebbeim-1.jpg'
 };

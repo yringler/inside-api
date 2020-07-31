@@ -178,10 +178,8 @@ Future<Site> fromWordPress(String wordpressUrl,
       .entries
       .map((e) => MapEntry(e.value, e.key)));
 
-  site.topItems = allCategories
-      .where((element) => element.parent == null || element.parent == 0)
-      .map((e) => TopItem(sectionId: e.id, title: e.name))
-      .where((element) => element.image != null)
+  site.topItems = topImages.keys
+      .map((e) => TopItem(sectionId: e, title: site.sections[e].title))
       .toList();
 
   site.topItems.sort(
