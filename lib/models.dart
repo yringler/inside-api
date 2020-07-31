@@ -186,12 +186,15 @@ class Media extends SiteDataItem {
 class MediaSection extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(2)
   final List<Media> media;
-  @HiveField(3)
 
   /// This field isn't used yet.
+  @HiveField(3)
   final int parentId;
+  @HiveField(4)
+  final int order;
 
-  MediaSection({this.media, this.parentId, String title, String description}) {
+  MediaSection(
+      {this.media, this.parentId, this.order, title, String description}) {
     this.title = title;
     this.description = description;
   }
@@ -201,7 +204,10 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
       _$MediaSectionFromJson(json);
 
   MediaSection copyWith(List<Media> media) => MediaSection(
-      description: description, media: media ?? this.media, title: title);
+      description: description,
+      media: media ?? this.media,
+      title: title,
+      order: order);
 
   @override
   int get audioCount => media.length;

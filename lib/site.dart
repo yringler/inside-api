@@ -269,7 +269,8 @@ SectionContent _parsePost(Site site, wp.Post post) {
         mediaSection: MediaSection(
             description: description,
             media: medias,
-            title: post.title.rendered));
+            title: post.title.rendered,
+            order: post.customFields['menu_order']));
   }
 }
 

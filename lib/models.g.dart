@@ -127,6 +127,7 @@ class MediaSectionAdapter extends TypeAdapter<MediaSection> {
     return MediaSection(
       media: (fields[2] as List)?.cast<Media>(),
       parentId: fields[3] as int,
+      order: fields[4] as int,
     )
       ..title = fields[0] as String
       ..description = fields[1] as String;
@@ -135,11 +136,13 @@ class MediaSectionAdapter extends TypeAdapter<MediaSection> {
   @override
   void write(BinaryWriter writer, MediaSection obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(2)
       ..write(obj.media)
       ..writeByte(3)
       ..write(obj.parentId)
+      ..writeByte(4)
+      ..write(obj.order)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -253,7 +256,8 @@ MediaSection _$MediaSectionFromJson(Map<String, dynamic> json) {
             (e) => e == null ? null : Media.fromJson(e as Map<String, dynamic>))
         ?.toList(),
     parentId: json['parentId'] as int,
-    title: json['title'] as String,
+    order: json['order'] as int,
+    title: json['title'],
     description: json['description'] as String,
   );
 }
@@ -264,6 +268,7 @@ Map<String, dynamic> _$MediaSectionToJson(MediaSection instance) =>
       'description': instance.description,
       'media': instance.media,
       'parentId': instance.parentId,
+      'order': instance.order,
     };
 
 TopItem _$TopItemFromJson(Map<String, dynamic> json) {
