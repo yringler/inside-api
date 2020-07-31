@@ -30,7 +30,7 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
   final int id;
   @override
   @HiveField(3)
-  final int audioCount;
+  int audioCount;
   @HiveField(4)
   List<SectionContent> content;
   @HiveField(5)
@@ -111,10 +111,10 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
 
     // Give all children a new parent. Namely, the parent of this section, which
     // is being removed.
-    for (final section in content
-        .where((element) => element.sectionId != null)
-        .map((e) => site.sections[e.sectionId])) {
-      site.sections[section.id] = section.copyWith(parentId: parentId);
+    for (final content
+        in content.where((element) => element.sectionId != null).toList()) {
+      site.sections[content.sectionId] =
+          site.sections[content.sectionId].copyWith(parentId: parentId);
     }
 
     return true;
@@ -240,14 +240,28 @@ class TopItem {
       _$TopItemFromJson(json);
 }
 
+// const _topImage = {
+//   21: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
+//   4: 'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
+//   56: 'https://insidechassidus.org/wp-content/uploads/History-and-Kaballah.jpg',
+//   28: 'https://insidechassidus.org/wp-content/uploads/Maamarim-and-handwriting.jpg',
+//   34: 'https://insidechassidus.org/wp-content/uploads/Rebbe-Sicha-and-Lekutei-Sichos.jpg',
+//   45: 'https://insidechassidus.org/wp-content/uploads/Talks-by-Rabbi-Paltiel.jpg',
+//   14: 'https://insidechassidus.org/wp-content/uploads/Tanya-Audio-Classes-Alter-Rebbe-2.jpg',
+//   40: 'https://insidechassidus.org/wp-content/uploads/Tefillah.jpg',
+//   13: 'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg'
+// };
+
 const _topImage = {
-  21: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
-  4: 'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
-  56: 'https://insidechassidus.org/wp-content/uploads/History-and-Kaballah.jpg',
-  28: 'https://insidechassidus.org/wp-content/uploads/Maamarim-and-handwriting.jpg',
-  34: 'https://insidechassidus.org/wp-content/uploads/Rebbe-Sicha-and-Lekutei-Sichos.jpg',
-  45: 'https://insidechassidus.org/wp-content/uploads/Talks-by-Rabbi-Paltiel.jpg',
-  14: 'https://insidechassidus.org/wp-content/uploads/Tanya-Audio-Classes-Alter-Rebbe-2.jpg',
-  40: 'https://insidechassidus.org/wp-content/uploads/Tefillah.jpg',
-  13: 'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg'
+  16: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
+  1475:
+      'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
+  19: 'https://insidechassidus.org/wp-content/uploads/History-and-Kaballah.jpg',
+  17: 'https://insidechassidus.org/wp-content/uploads/Maamarim-and-handwriting.jpg',
+  18: 'https://insidechassidus.org/wp-content/uploads/Rebbe-Sicha-and-Lekutei-Sichos.jpg',
+  20: 'https://insidechassidus.org/wp-content/uploads/Talks-by-Rabbi-Paltiel.jpg',
+  6: 'https://insidechassidus.org/wp-content/uploads/Tanya-Audio-Classes-Alter-Rebbe-2.jpg',
+  15: 'https://insidechassidus.org/wp-content/uploads/Tefillah.jpg',
+  1447:
+      'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg'
 };

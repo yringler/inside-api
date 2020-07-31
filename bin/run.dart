@@ -18,7 +18,7 @@ void main(List<String> arguments) async {
   Site site;
 
   if (await currentRawSiteFile.exists()) {
-    site = await fromWordPress('http://localhost',
+    site = await fromWordPress('https://insidechassidus.org/',
         base: Site.fromJson(json.decode(currentRawSiteFile.readAsStringSync())),
         createdDate: await _getCurrentVersionDate());
   } else {

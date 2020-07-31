@@ -41,6 +41,10 @@ class Site {
 
   /// Go through all the data and update the [Section.audioCount].
   void setAudioCount() {
+    for (final section in sections.values) {
+      section.audioCount = null;
+    }
+
     var processing = <int>{};
     for (final id in sections.keys) {
       _setAudioCount(processing, id);
@@ -69,31 +73,18 @@ class Site {
     processing.add(id);
 
     // Count how many classes are directly in this section.
-    final directAudioCount = section.content.map((e) {
+    final audioCount = section.content.map((e) {
       if (e.media != null) {
         return 1;
       }
       if (e.mediaSection != null) {
         return e.mediaSection.media.length;
       }
-      return 0;
+      return _setAudioCount(processing, e.sectionId);
     }).reduce((value, element) => value + element);
 
-    // Count how many classes are in child sections, recursively.
-    var childAudioCount = 0;
-    final childSections = section.content
-        .where((element) => element.sectionId != null)
-        .map((e) => sections[e.sectionId]);
-
-    if (childSections.isNotEmpty) {
-      childAudioCount = childSections
-          .map((e) => _setAudioCount(processing, e.id))
-          .reduce((value, element) => value + element);
-    }
-
     // Save the audio count.
-    sections[id] =
-        sections[id].copyWith(audioCount: directAudioCount + childAudioCount);
+    sections[id] = sections[id].copyWith(audioCount: audioCount);
 
     processing.remove(id);
 
@@ -120,18 +111,20 @@ Future<Site> fromWordPress(String wordpressUrl,
 
   print('loading categories...');
   // Make request.
-  var categories = (await wordPress.fetchCategories(
+  final allCategories = (await wordPress.fetchCategories(
           params: wp.ParamsCategoryList(
             context: wp.WordPressContext.view,
           ),
           fetchAll: true))
-      .where((element) => !site.sections.containsKey(element.id))
       .toList();
+
+  final newCategories =
+      allCategories.where((element) => !site.sections.containsKey(element.id));
 
   print('Done loading');
 
   // Load sections. Will not to over-ride any that are already set.
-  site.sections.addAll(Map.fromEntries(categories.map((e) => MapEntry(
+  site.sections.addAll(Map.fromEntries(newCategories.map((e) => MapEntry(
       e.id,
       Section(
           id: e.id,
@@ -141,12 +134,10 @@ Future<Site> fromWordPress(String wordpressUrl,
 
   // Connect sections.
   // Add any categories without parents to topItems.
-  for (final category in categories) {
+  for (final category in newCategories) {
     if (category.parent != 0 && category.parent != null) {
       site.sections[category.parent].content
           .add(SectionContent(sectionId: category.id));
-    } else {
-      site.topItems.add(TopItem(sectionId: category.id, title: category.name));
     }
   }
 
@@ -163,22 +154,39 @@ Future<Site> fromWordPress(String wordpressUrl,
     }
   }
 
+  // Map of category id to sort value.
+  final sectionOrder = Map<int, int>.fromEntries(allCategories
+      .map((e) => e.id)
+      .toList()
+      .asMap()
+      .entries
+      .map((e) => MapEntry(e.value, e.key)));
+
+  site.topItems = allCategories
+      .where((element) => element.parent == null || element.parent == 0)
+      .map((e) => TopItem(sectionId: e.id, title: e.name))
+      .where((element) => element.image != null)
+      .toList();
+
+  site.topItems.sort(
+      (a, b) => sectionOrder[a.sectionId].compareTo(sectionOrder[b.sectionId]));
+
   // Sort sections
   for (final section in site.sections.values) {
     final originalOrder = List.from(section.content);
-    
+
     section.content.sort((a, b) {
-      // We have to do this because if we return 0, the order is undefined...
-      if (a.media?.order == null || b.media?.order == null) {
-        return originalOrder.indexOf(a).compareTo(originalOrder.indexOf(b));
+      if (a.media?.order != null && b.media?.order != null) {
+        return a.media.order.compareTo(b.media.order);
+      }
+      if (a.sectionId != null && b.sectionId != null) {
+        return sectionOrder[a.sectionId].compareTo(sectionOrder[b.sectionId]);
       }
 
-      return a.media.order.compareTo(b.media.order);
+      // We have to do this because if we return 0, the order is undefined...
+      return originalOrder.indexOf(a).compareTo(originalOrder.indexOf(b));
     });
   }
-
-  site.topItems =
-      site.topItems.where((element) => element.image != null).toList();
 
   return site;
 }
