@@ -63,58 +63,41 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
   /// Remove this section from the site. If it has any children, they will be
   /// attached to all parents of this section.
   /// Returns true if the item is able to be removed.
-  bool removeFrom(Site site, Map<int, Section> toRemove) {
-    var parentId = this.parentId;
-    // If this sections parent is also removed, keep track of that id.
-    int removedParentId;
-
+  bool removeFrom(Site site) {
     // If this is a top level item, get rid of it if we can.
     if (parentId == null || parentId == 0) {
-      if (audioCount == 0) {
-        site.sections.remove(id);
-
-        site.topItems.removeWhere((element) => element.sectionId == id);
-
-        return true;
-      }
-
       return false;
     }
 
-    while (!site.sections.containsKey(parentId) &&
-        toRemove.containsKey(parentId)) {
-      removedParentId = parentId;
-      parentId = toRemove[parentId].parentId;
+    final parent = site.sections[parentId];
+    assert(parent != null);
+    final index =
+        parent.content.indexWhere((element) => element.sectionId == id);
+
+    if (index >= 0 && audioCount > 0) {
+      parent.content.replaceRange(index, index + 1, content);
     }
 
-    if (parentId != 0) {
-      final parent = site.sections[parentId];
-      assert(parent != null);
-
-      // The id which is used to reference the current section in the nearest
-      // parent which isn't removed.
-      final referenceToCurrentInParent = removedParentId ?? id;
-
-      final index = parent.content?.indexWhere(
-              (element) => element.sectionId == referenceToCurrentInParent) ??
-          -1;
-
-      if (index >= 0) {
-        parent.content.replaceRange(index, index + 1, content);
-      } else {
-        stderr.writeln("...That wasn't supposed to happen");
-        stderr.writeln(json.encode(this));
-      }
+    if (index == -1) {
+      stderr.writeln('Not found in parent: $id in $parentId');
     }
 
     site.sections.remove(id);
+    parent.content.removeWhere((element) => element.sectionId == id);
 
     // Give all children a new parent. Namely, the parent of this section, which
     // is being removed.
-    for (final content
-        in content.where((element) => element.sectionId != null).toList()) {
-      site.sections[content.sectionId] =
-          site.sections[content.sectionId].copyWith(parentId: parentId);
+    for (final id in content
+        .where((element) => element.sectionId != null)
+        .map((e) => e.sectionId)) {
+      final section = site.sections[id];
+      if (section == null) {
+        // This happens because these items where removed in site.remove without
+        // removing them from their parents
+        stderr.writeln('Error: not found: $id in ${this.id}');
+      } else {
+        site.sections[section.id] = section.copyWith(parentId: parentId);
+      }
     }
 
     return true;

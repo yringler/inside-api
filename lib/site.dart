@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -22,17 +24,28 @@ class Site {
 
   /// Flatten the category tree as much as possible.
   void compressSections() {
+    final emptyIds = sections.values
+        .where((value) => value.audioCount == 0 || value.audioCount == null)
+        .toList();
+
+    for (final id in emptyIds) {
+      sections.remove(id);
+    }
+
+    for (final section in sections.values) {
+      section.content
+          .removeWhere((element) => emptyIds.contains(element.sectionId));
+    }
+
     var removedSomething = false;
     do {
       removedSomething = false;
 
       // Merge any section which has little content into its parent.
-      final sectionsToRemove = Map<int, Section>.fromEntries(sections.values
-          .where((element) => element.audioCount < 2)
-          .map((e) => MapEntry(e.id, e)));
+      final sectionsToRemove = sections.keys.toList();
 
-      for (final section in sectionsToRemove.values) {
-        if (section.removeFrom(this, sectionsToRemove)) {
+      for (final id in sectionsToRemove) {
+        if (sections[id].removeFrom(this)) {
           removedSomething = true;
         }
       }
@@ -105,7 +118,6 @@ Future<Site> fromWordPress(String wordpressUrl,
   var posts = await wordPress.fetchPosts(
       postParams: wp.ParamsPostList(
           context: wp.WordPressContext.view, afterDate: afterDate),
-      fetchCategories: true,
       fetchAll: true,
       customFieldNames: {'menu_order'});
 
@@ -118,8 +130,9 @@ Future<Site> fromWordPress(String wordpressUrl,
           fetchAll: true))
       .toList();
 
-  final newCategories =
-      allCategories.where((element) => !site.sections.containsKey(element.id));
+  final newCategories = allCategories
+      .where((element) => !site.sections.containsKey(element.id))
+      .toList();
 
   print('Done loading');
 
@@ -133,9 +146,12 @@ Future<Site> fromWordPress(String wordpressUrl,
           parentId: e.parent)))));
 
   // Connect sections.
-  // Add any categories without parents to topItems.
-  for (final category in newCategories) {
-    if (category.parent != 0 && category.parent != null) {
+  for (final category in allCategories) {
+    if (category.parent != 0 &&
+        category.parent != null &&
+        site.sections[category.parent].content
+            .where((element) => element.sectionId == category.id)
+            .isEmpty) {
       site.sections[category.parent].content
           .add(SectionContent(sectionId: category.id));
     }
@@ -180,7 +196,19 @@ Future<Site> fromWordPress(String wordpressUrl,
         return a.media.order.compareTo(b.media.order);
       }
       if (a.sectionId != null && b.sectionId != null) {
-        return sectionOrder[a.sectionId].compareTo(sectionOrder[b.sectionId]);
+        final sectionAOrder = sectionOrder[a.sectionId];
+        final sectionBOrder = sectionOrder[b.sectionId];
+
+        if (sectionAOrder == null) {
+          stderr.writeln('err: order null : ${a.sectionId}');
+        }
+        if (sectionBOrder == null) {
+          stderr.writeln('err: order null : ${b.sectionId}');
+        }
+
+        if (sectionAOrder != null && sectionBOrder != null) {
+          return sectionOrder[a.sectionId].compareTo(sectionOrder[b.sectionId]);
+        }
       }
 
       // We have to do this because if we return 0, the order is undefined...

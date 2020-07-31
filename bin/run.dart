@@ -8,6 +8,8 @@ import 'package:process_run/process_run.dart' as process;
 final encoder = JsonEncoder.withIndent('\t');
 final currentRawSiteFile = File('rawsite.current.json');
 
+const sourceUrl = 'https://insidechassidus.org/';
+
 /// Reads (or queries) all lessons, creates lesson list and uses duration data.
 /// Note that it doesn't compress the site. This allows incremental updates, because
 /// we can be certain that all sections (categories) are present (and haven't been
@@ -18,11 +20,11 @@ void main(List<String> arguments) async {
   Site site;
 
   if (await currentRawSiteFile.exists()) {
-    site = await fromWordPress('https://insidechassidus.org/',
+    site = await fromWordPress(sourceUrl,
         base: Site.fromJson(json.decode(currentRawSiteFile.readAsStringSync())),
         createdDate: await _getCurrentVersionDate());
   } else {
-    site = await fromWordPress('http://localhost');
+    site = await fromWordPress(sourceUrl);
   }
 
   site.setAudioCount();
@@ -87,6 +89,8 @@ Future<void> _notifyApiOfLatest(DateTime date) async {}
 Future<void> _uploadToDropbox(Site site) async {
   site.compressSections();
   final key = await File('.droptoken.txt').readAsString();
+
+  await File('dropbox.json').writeAsString(json.encode(site));
 
   var request = Request(
       'POST', Uri.parse('https://content.dropboxapi.com/2/files/upload'))
