@@ -69,7 +69,7 @@ Future _updateLatestLocalCloud(Site site) async {
   final newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if (rawContents != newJson) {
+  if (true || rawContents != newJson) {
     // Save site as being current.
     await currentRawSiteFile.writeAsString(newJson, flush: true);
 

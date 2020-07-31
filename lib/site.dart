@@ -26,6 +26,7 @@ class Site {
   void compressSections() {
     final emptyIds = sections.values
         .where((value) => value.audioCount == 0 || value.audioCount == null)
+        .map((e) => e.id)
         .toList();
 
     for (final id in emptyIds) {
