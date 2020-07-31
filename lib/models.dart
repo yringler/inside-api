@@ -173,7 +173,9 @@ class Media extends SiteDataItem {
       description: description,
       length: length ?? this.length,
       source: source,
-      title: title);
+      title: title,
+      order: order,
+      parentId: parentId);
 }
 
 @HiveType(typeId: 4)
