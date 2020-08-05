@@ -118,14 +118,17 @@ Future<Site> fromWordPress(String wordpressUrl,
 
   final afterDate = createdDate?.toIso8601String() ?? '';
 
-  print('loading posts...');
+  print('loading');
   var posts = await wordPress.fetchPosts(
       postParams: wp.ParamsPostList(
           context: wp.WordPressContext.view, afterDate: afterDate),
       fetchAll: true,
       customFieldNames: {'menu_order'});
 
-  print('loading categories...');
+  if (posts.isEmpty) {
+    return site;
+  }
+
   // Make request.
   final allCategories = (await wordPress.fetchCategories(
           params: wp.ParamsCategoryList(

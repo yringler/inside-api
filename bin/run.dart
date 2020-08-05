@@ -10,6 +10,9 @@ final currentRawSiteFile = File('rawsite.current.json');
 
 const sourceUrl = 'https://insidechassidus.org/';
 
+/// The number of media URLs which 404, and will always have duration 0
+const numInvalidMedia = 4;
+
 /// Reads (or queries) all lessons, creates lesson list and uses duration data.
 /// Note that it doesn't compress the site. This allows incremental updates, because
 /// we can be certain that all sections (categories) are present (and haven't been
@@ -35,16 +38,18 @@ void main(List<String> arguments) async {
       encoder.convert(classList.map((e) => e.source).toSet().toList()));
 
   // Update our duration list if we need to.
-  if (classList
-      .where((element) => element.length == Duration.zero)
-      .isNotEmpty) {
+  if (classList.where((element) => element.length == Duration.zero).length >
+      numInvalidMedia) {
     print('running check_duration');
     await process.run('node', ['./scriptlets/audiolength/get_duration.js']);
   }
-
+  print('set duration');
   await _setSiteDuration(site);
 
+  print('update latest');
   await _updateLatestLocalCloud(site);
+  print('returning');
+  exit(0);
 }
 
 Future<DateTime> _getCurrentVersionDate() async {
@@ -59,37 +64,52 @@ Future<DateTime> _getCurrentVersionDate() async {
 Future<void> _setCurrentVersionDate(DateTime date) async {
   final file = File('.date.txt');
   await file.writeAsString(date.toIso8601String());
+  await File('.dateepoch.txt')
+      .writeAsString(date.millisecondsSinceEpoch.toString());
 }
 
 /// Handle - we got a new class!
-Future _updateLatestLocalCloud(Site site) async {
+Future<void> _updateLatestLocalCloud(Site site) async {
   final rawContents = currentRawSiteFile.existsSync()
       ? currentRawSiteFile.readAsStringSync()
       : null;
   final newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if (true || rawContents != newJson) {
+  if (rawContents != newJson) {
     // Save site as being current.
     await currentRawSiteFile.writeAsString(newJson, flush: true);
 
     site.createdDate = DateTime.now();
     await _setCurrentVersionDate(site.createdDate);
-
+    print('uploading...');
     await _uploadToDropbox(site);
+    print('notifying...');
     await _notifyApiOfLatest(site.createdDate);
+    print('done');
   }
 }
 
 /// Tell API what the newest version of data is.
-Future<void> _notifyApiOfLatest(DateTime date) async {}
+Future<void> _notifyApiOfLatest(DateTime date) async {
+  var password = await File('.updatepassword').readAsString();
+  var request = Request(
+      'GET',
+      Uri.parse(
+          'https://inside-api.herokuapp.com/update?auth=$password&date=${date.millisecondsSinceEpoch}'));
+
+  final response = await request.send();
+
+  if (response.statusCode != HttpStatus.noContent) {
+    await File('.errorlog').writeAsStringSync('Error! Setting failed');
+  }
+}
 
 /// Upload newest version of data to dropbox.
 /// (Thank you, Raj @https://stackoverflow.com/a/56572616)
 Future<void> _uploadToDropbox(Site site) async {
   site.compressSections();
   final key = await File('.droptoken.txt').readAsString();
-
   await File('dropbox.json').writeAsString(json.encode(site));
 
   var request = Request(
@@ -98,28 +118,11 @@ Future<void> _uploadToDropbox(Site site) async {
       'Content-Type': 'application/octet-stream',
       'Authorization': 'Bearer $key',
       'Dropbox-API-Arg': json
-          .encode({'path': '/site.json', 'mode': 'overwrite', 'mute': true}),
+          .encode({'path': '/site.json.gz', 'mode': 'overwrite', 'mute': true}),
     })
-    ..bodyBytes = utf8.encode(json.encode(site));
+    ..bodyBytes = GZipCodec(level: 9).encode(utf8.encode(json.encode(site)));
 
-  final response = await request.send();
-  var responseString = String.fromCharCodes(await response.stream.toBytes());
-  print(responseString);
-
-  final shareRequest = Request(
-      'POST',
-      Uri.parse(
-          'https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings'))
-    ..bodyBytes = utf8.encode(json.encode({'path': '/site.json'}))
-    ..headers.addAll(
-        {'Authorization': 'Bearer $key', 'Content-Type': 'application/json'});
-
-  final shareResponse = await shareRequest.send();
-  final shareString =
-      String.fromCharCodes(await shareResponse.stream.toBytes());
-  print(shareString);
-  final Map<String, dynamic> shareJson = json.decode(shareString);
-  print(shareJson['url']);
+  await request.send();
 }
 
 List<Media> _getClassList(Site site) {
