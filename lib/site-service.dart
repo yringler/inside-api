@@ -1,48 +1,49 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 import 'package:hive/hive.dart';
 import 'package:hive/src/hive_impl.dart';
+import 'package:http/http.dart';
 import 'package:inside_api/models.dart';
+import 'package:path/path.dart' as p;
 
 /// [hivePath] is where the data should be stored.
 /// [currentVersion] is the date which any saved data should be newer than or equal to.
 /// [rawData] is the entirety of the site JSON.
 Future<SiteBoxes> getSiteBoxesWithData(
-    {String hivePath, DateTime currentVersion, String rawData}) async {
+    {String hivePath, String rawData}) async {
   final boxes = await _getSiteBoxesNoData(path: hivePath);
 
-  if (boxes.createdDate != null &&
-      (currentVersion == null ||
-          boxes.createdDate.isAfter(currentVersion) ||
-          boxes.createdDate.isAtSameMomentAs(currentVersion))) {
-    return boxes;
+  final jsonFile = File(p.join(hivePath, 'site.json'));
+
+  if (await jsonFile.exists()) {
+    rawData = await jsonFile.readAsString();
   }
 
+  // Return what we have if there aren't any updates.
   if (rawData == null) {
-    return null;
+    try {
+      return boxes.createdDate != null ? boxes : null;
+    } finally {
+      await boxes.hive.close();
+    }
   }
-
-  // We don't have data, or no current data, so load up the boxes
-  // on another isolate.
 
   await boxes.hive.close();
 
-  final completer = Completer();
-  final recievePort = ReceivePort();
+  await _setHiveData(hivePath: hivePath, rawJson: rawData);
 
-  await Isolate.spawn(_setHiveData, [recievePort.sendPort, hivePath, rawData]);
-
-  recievePort.listen((_) => completer.complete());
-
-  await completer.future;
+  // We used it, now get rid of it.
+  if (await jsonFile.exists()) {
+    await jsonFile.delete();
+  }
 
   // Returned re-opened boxes.
   return await _getSiteBoxesNoData(path: hivePath);
 }
 
 class SiteBoxes {
+  final String path;
   final HiveImpl hive;
   final LazyBox<Section> sections;
   final Box<TopItem> topItems;
@@ -77,6 +78,25 @@ class SiteBoxes {
     return section;
   }
 
+  /// Download data update, for use next time data is loaded.
+  Future<void> tryPrepareUpdate() async {
+    final request = Request(
+        'GET',
+        Uri.parse(
+            'https://inside-api.herokuapp.com/check?date=${createdDate.millisecondsSinceEpoch}'));
+
+    try {
+      final response = await request.send();
+
+      if (response.statusCode == HttpStatus.ok) {
+        await File(p.join(path, 'site.json'))
+            .writeAsBytes(GZipCodec().decode(await response.stream.toBytes()));
+      }
+    } catch (ex) {
+      print(ex);
+    }
+  }
+
   Future<void> _setTopSections() async {
     if (topItems.isEmpty) {
       return;
@@ -87,16 +107,11 @@ class SiteBoxes {
     }
   }
 
-  SiteBoxes({this.hive, this.sections, this.topItems, this.data});
+  SiteBoxes({this.hive, this.sections, this.topItems, this.data, this.path});
 }
 
 /// Loads data into hive.
-void _setHiveData(dynamic arguments) async {
-  final dynamicArguments = List.castFrom(arguments);
-  final sendPort = dynamicArguments[0] as SendPort;
-  final hivePath = dynamicArguments[1] as String;
-  final rawJson = dynamicArguments[2] as String;
-
+void _setHiveData({String hivePath, String rawJson}) async {
   final site = Site.fromJson(json.decode(rawJson));
   final boxes = await _getSiteBoxesNoData(path: hivePath);
 
@@ -107,10 +122,9 @@ void _setHiveData(dynamic arguments) async {
 
   // Close so that can be opened on other isolate.
   await boxes.hive.close();
-  sendPort.send(true);
 }
 
-/// A smiple open of all the boxes which doesn't check wether they have data or not.
+/// A simple open of all the boxes which doesn't check wether they have data or not.
 Future<SiteBoxes> _getSiteBoxesNoData({String path}) async {
   final hive = HiveImpl();
   await Directory(path).create();
@@ -127,6 +141,7 @@ Future<SiteBoxes> _getSiteBoxesNoData({String path}) async {
 
   final siteBoxes = SiteBoxes(
       hive: hive,
+      path: path,
       data: await hive.openBox('data'),
       sections: await hive.openLazyBox<Section>('sections'),
       topItems: await hive.openBox<TopItem>('topitems'));
