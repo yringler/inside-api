@@ -12,8 +12,8 @@ part 'site.g.dart';
 
 /// All data on the site.
 class Site {
-  Map<int, Section> sections = Map();
-  List<TopItem> topItems = List();
+  Map<int, Section> sections = {};
+  List<TopItem> topItems = [];
   DateTime createdDate;
 
   Map<String, dynamic> toJson() => _$SiteToJson(this);

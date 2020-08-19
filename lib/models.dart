@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:hive/hive.dart';
@@ -21,10 +20,16 @@ abstract class CountableSiteDataItem implements SiteDataItem {
   int get audioCount;
 }
 
+// A class which contains a reference to a section.
+abstract class SectionReference {
+  int get sectionId;
+  Section section;
+}
+
 @HiveType(typeId: 1)
 @JsonSerializable()
 
-/// Onne section. A section contains any amount of media or child sections.
+/// One section. A section contains any amount of media or child sections.
 class Section extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(2)
   final int id;
@@ -43,7 +48,7 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
     List<SectionContent> content,
     this.audioCount,
     this.parentId,
-  }) : content = content ?? List() {
+  }) : content = content ?? [] {
     this.title = title;
     this.description = description;
   }
@@ -110,8 +115,9 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
 /// One item contained in a section. May be any one of a reference to a section,
 /// a media item, or a small section.
 /// It is an error to provide two data points to one [SectionContent].
-class SectionContent {
+class SectionContent implements SectionReference {
   @HiveField(0)
+  @override
   final int sectionId;
   @HiveField(1)
   final Media media;
@@ -119,6 +125,7 @@ class SectionContent {
   final MediaSection mediaSection;
 
   /// Will be null unless used after [SiteBoxes.resolve]
+  @override
   Section section;
 
   SectionContent({this.sectionId, this.media, this.mediaSection}) {
@@ -147,7 +154,7 @@ class Media extends SiteDataItem {
 
   /// This field isn't used yet.
   @HiveField(4)
-  final int parentId;
+  int parentId;
   @HiveField(5)
   final int order;
 
@@ -189,7 +196,7 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
 
   /// This field isn't used yet.
   @HiveField(3)
-  final int parentId;
+  int parentId;
   @HiveField(4)
   final int order;
 

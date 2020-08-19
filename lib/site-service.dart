@@ -48,24 +48,34 @@ class SiteBoxes {
 
   /// Goes through all content and loads any sections.
   Future<Section> resolve(Section section) async {
-    final nullSectionContent = section.content.where(
-        (element) => element.sectionId != null && element.section == null).toList();
+    final nullSectionContent = section.content
+        .where(
+            (element) => element.sectionId != null && element.section == null)
+        .toList();
 
+    await resolveIterable(nullSectionContent);
+
+    return section;
+  }
+
+  /// Set the section references of passed in list.
+  Future<List<SectionReference>> resolveIterable(
+      List<SectionReference> references) async {
     final sectionFutures =
-        nullSectionContent.map((e) => sections.get(e.sectionId)).toList();
+        references.map((e) => sections.get(e.sectionId)).toList();
 
     if (sectionFutures.isEmpty) {
-      return section;
+      return references;
     }
 
     final sectionMap = Map.fromEntries(
         (await Future.wait(sectionFutures)).map((e) => MapEntry(e.id, e)));
 
-    for (final s in nullSectionContent) {
+    for (final s in references) {
       s.section = sectionMap[s.sectionId];
     }
 
-    return section;
+    return references;
   }
 
   /// Download data update, for use next time data is loaded.
