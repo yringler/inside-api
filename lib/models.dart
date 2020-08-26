@@ -145,7 +145,7 @@ class SectionContent implements SectionReference {
 @HiveType(typeId: 3)
 @JsonSerializable()
 
-/// One lecture. For now, only supports video.
+/// One lecture. For now, only supports audio.
 class Media extends SiteDataItem {
   @HiveField(2)
   final String source;
