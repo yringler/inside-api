@@ -76,15 +76,16 @@ Future<void> _updateLatestLocalCloud(Site site) async {
   final rawContents = currentRawSiteFile.existsSync()
       ? currentRawSiteFile.readAsStringSync()
       : null;
-  final newJson = encoder.convert(site);
+  var newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
   if (rawContents != newJson) {
+    site.createdDate = DateTime.now();
+    site.parseHTML();
+
     // Save site as being current.
     await currentRawSiteFile.writeAsString(newJson, flush: true);
 
-    site.createdDate = DateTime.now();
-    site.parseHTML();
     await _setCurrentVersionDate(site.createdDate);
 
     print('uploading...');

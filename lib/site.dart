@@ -2,11 +2,14 @@ import 'dart:io';
 
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html;
+import 'package:html_unescape/html_unescape_small.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flutter_wordpress/flutter_wordpress.dart' as wp;
 import 'models.dart';
 
 part 'site.g.dart';
+
+final htmlUnescape = HtmlUnescape();
 
 @JsonSerializable()
 
@@ -112,12 +115,12 @@ class Site {
 
   /// Go through all content, make sure it's plain text, not HTML.
   void parseHTML() {
-    sections.values.forEach((section) {
+    sections.values.toList().forEach((section) {
       parseDataXml(section);
-      section.content.forEach((content) {
+      section.content.toList().forEach((content) {
         parseDataXml(content.media);
         parseDataXml(content.mediaSection);
-        content.mediaSection?.media?.forEach(parseDataXml);
+        content.mediaSection?.media?.toList()?.forEach(parseDataXml);
       });
     });
   }
@@ -260,7 +263,7 @@ String parseXml(String xmlString) {
   final xml = html.parseFragment(xmlString.replaceAll('<br>', '\n'));
   final returnValue = xml.children.map((e) => e.text).join(' ').trim();
 
-  return returnValue.isNotEmpty ? returnValue : xmlString;
+  return htmlUnescape.convert(returnValue.isNotEmpty ? returnValue : xmlString);
 }
 
 SectionContent _parsePost(Site site, wp.Post post) {
