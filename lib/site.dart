@@ -260,14 +260,14 @@ String parseXml(String xmlString) {
     return null;
   }
 
-  final xml = html.parseFragment(xmlString.replaceAll('<br>', '\n'));
+  final xml = html.parse(xmlString.replaceAll('<br>', '\n'));
   final returnValue = xml.children.map((e) => e.text).join(' ').trim();
 
   return htmlUnescape.convert(returnValue.isNotEmpty ? returnValue : xmlString);
 }
 
 SectionContent _parsePost(Site site, wp.Post post) {
-  final xml = html.parseFragment(post.content.rendered);
+  final xml = html.parse(post.content.rendered);
 
   final audios = xml.querySelectorAll('.wp-block-audio');
 
