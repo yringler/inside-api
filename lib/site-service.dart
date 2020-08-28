@@ -7,6 +7,7 @@ import 'package:http/http.dart';
 import 'package:inside_api/models.dart';
 import 'package:path/path.dart' as p;
 
+/// Version code for the data storage format.
 const int dataVersion = 2;
 
 /// [hivePath] is where the data should be stored.
