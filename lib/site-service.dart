@@ -140,14 +140,16 @@ Future<SiteBoxes> _getSiteBoxesNoData({String path}) async {
   await Directory(path).create();
   hive.init(path);
 
-  final metaBox = await hive.openBox('meta');
+  var metaBox = await hive.openBox('meta');
+  final currentVersionInUse = metaBox.get('dataversion');
 
   // Don't try to load data if it's of an older type.
-  if (metaBox.get('dataversion', defaultValue: 0) < dataVersion) {
+  if (currentVersionInUse != null && currentVersionInUse < dataVersion) {
     await hive.deleteFromDisk();
     await Directory(path).delete(recursive: true);
-    return null;
   }
+
+  metaBox = await hive.openBox('meta');
 
   try {
     // Don't worry if we register an adapter twice.
