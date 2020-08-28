@@ -16,6 +16,10 @@ Future<SiteBoxes> getSiteBoxesWithData(
     {String hivePath, String rawData}) async {
   final boxes = await _getSiteBoxesNoData(path: hivePath);
 
+  if (boxes == null) {
+    return null;
+  }
+
   final jsonFile = File(p.join(hivePath, 'site.json'));
 
   if (await jsonFile.exists()) {
@@ -136,23 +140,42 @@ Future<SiteBoxes> _getSiteBoxesNoData({String path}) async {
   await Directory(path).create();
   hive.init(path);
 
-  // Don't worry if we register an adapter twice.
+  final metaBox = await hive.openBox('meta');
+
+  // Don't try to load data if it's of an older type.
+  if (metaBox.get('dataversion', defaultValue: 0) < dataVersion) {
+    await hive.deleteFromDisk();
+    await Directory(path).delete(recursive: true);
+    return null;
+  }
+
   try {
-    hive.registerAdapter(SectionAdapter());
-    hive.registerAdapter(SectionContentAdapter());
-    hive.registerAdapter(MediaAdapter());
-    hive.registerAdapter(MediaSectionAdapter());
-    hive.registerAdapter(TopItemAdapter());
-  } catch (_) {}
+    // Don't worry if we register an adapter twice.
+    try {
+      hive.registerAdapter(SectionAdapter());
+      hive.registerAdapter(SectionContentAdapter());
+      hive.registerAdapter(MediaAdapter());
+      hive.registerAdapter(MediaSectionAdapter());
+      hive.registerAdapter(TopItemAdapter());
+    } catch (_) {}
 
-  final siteBoxes = SiteBoxes(
-      hive: hive,
-      path: path,
-      data: await hive.openBox('data'),
-      sections: await hive.openLazyBox<Section>('sections'),
-      topItems: await hive.openBox<TopItem>('topitems'));
+    final siteBoxes = SiteBoxes(
+        hive: hive,
+        path: path,
+        data: await hive.openBox('data'),
+        sections: await hive.openLazyBox<Section>('sections'),
+        topItems: await hive.openBox<TopItem>('topitems'));
 
-  await siteBoxes._setTopSections();
+    await siteBoxes._setTopSections();
 
-  return siteBoxes;
+    // Save the current data version.
+    await metaBox.put('dataversion', dataVersion);
+
+    return siteBoxes;
+  } catch (_) {
+    await hive.deleteFromDisk();
+    await Directory(path).delete(recursive: true);
+
+    return null;
+  }
 }
