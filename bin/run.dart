@@ -8,8 +8,9 @@ import 'package:process_run/process_run.dart' as process;
 final encoder = JsonEncoder.withIndent('\t');
 final currentRawSiteFile = File('rawsite.current.json');
 
-const dropBoxFile = '/site.v2.json.gz';
-const isDebug = true;
+const dataVersion = 2;
+const dropBoxFile = '/site.v$dataVersion.json.gz';
+const isDebug = false;
 const sourceUrl = isDebug ? 'http://localhost' : 'https://insidechassidus.org/';
 
 /// The number of media URLs which 404, and will always have duration 0
@@ -104,7 +105,7 @@ Future<void> _notifyApiOfLatest(DateTime date) async {
   var request = Request(
       'GET',
       Uri.parse(
-          'https://inside-api.herokuapp.com/update?auth=$password&date=${date.millisecondsSinceEpoch}'));
+          'https://inside-api.herokuapp.com/update?auth=$password&date=${date.millisecondsSinceEpoch}&v=$dataVersion'));
 
   final response = await request.send();
 
