@@ -290,8 +290,12 @@ SectionContent _parsePost(Site site, wp.Post post) {
 
     return media == null ? null : SectionContent(media: media);
   } else {
-    final medias =
-        audios.map(_toMedia).where((element) => element != null).toList();
+    final medias = audios
+        .map(_toMedia)
+        // The direct parent of the media item medias is the media section.
+        .map((e) => e?.copyWith(parentId: post.id))
+        .where((element) => element != null)
+        .toList();
 
     // Give any media without a good title the title of the post with a counter.
     for (var i = 0; i < medias.length; ++i) {
@@ -308,7 +312,8 @@ SectionContent _parsePost(Site site, wp.Post post) {
     return SectionContent(
         mediaSection: MediaSection(
             id: post.id,
-            // Media is duplicated for each parent, and set there.
+            // Media content is duplicated for each section which has it, and
+            // it's set (in a copy) when added to a section.
             parentId: null,
             title: post.title.rendered,
             description: description,

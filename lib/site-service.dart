@@ -7,6 +7,8 @@ import 'package:http/http.dart';
 import 'package:inside_api/models.dart';
 import 'package:path/path.dart' as p;
 
+const int dataVersion = 2;
+
 /// [hivePath] is where the data should be stored.
 /// [rawData] is the entirety of the site JSON.
 Future<SiteBoxes> getSiteBoxesWithData(
@@ -83,7 +85,7 @@ class SiteBoxes {
     final request = Request(
         'GET',
         Uri.parse(
-            'https://inside-api.herokuapp.com/check?date=${createdDate.millisecondsSinceEpoch}'));
+            'https://inside-api.herokuapp.com/check?date=${createdDate.millisecondsSinceEpoch}&v=$dataVersion'));
 
     try {
       final response = await request.send();
