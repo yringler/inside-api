@@ -8,7 +8,9 @@ import 'package:process_run/process_run.dart' as process;
 final encoder = JsonEncoder.withIndent('\t');
 final currentRawSiteFile = File('rawsite.current.json');
 
-const sourceUrl = 'https://insidechassidus.org/';
+const dropBoxFile = '/site.v2.json.gz';
+const isDebug = true;
+const sourceUrl = isDebug ? 'http://localhost' : 'https://insidechassidus.org/';
 
 /// The number of media URLs which 404, and will always have duration 0
 const numInvalidMedia = 4;
@@ -31,6 +33,7 @@ void main(List<String> arguments) async {
   }
 
   site.setAudioCount();
+  site.parseHTML();
 
   final classListFile = File('scriptlets/audiolength/classlist.json');
   final classList = _getClassList(site);
@@ -81,11 +84,17 @@ Future<void> _updateLatestLocalCloud(Site site) async {
     await currentRawSiteFile.writeAsString(newJson, flush: true);
 
     site.createdDate = DateTime.now();
+    site.parseHTML();
     await _setCurrentVersionDate(site.createdDate);
-    print('uploading...');
-    await _uploadToDropbox(site);
-    print('notifying...');
-    await _notifyApiOfLatest(site.createdDate);
+
+    if (!isDebug) {
+      print('uploading...');
+      await _uploadToDropbox(site);
+      print('notifying...');
+      await _notifyApiOfLatest(site.createdDate);
+    } else {
+      print('in debug mode');
+    }
     print('done');
   }
 }
@@ -117,8 +126,8 @@ Future<void> _uploadToDropbox(Site site) async {
     ..headers.addAll({
       'Content-Type': 'application/octet-stream',
       'Authorization': 'Bearer $key',
-      'Dropbox-API-Arg': json
-          .encode({'path': '/site.json.gz', 'mode': 'overwrite', 'mute': true}),
+      'Dropbox-API-Arg':
+          json.encode({'path': dropBoxFile, 'mode': 'overwrite', 'mute': true}),
     })
     ..bodyBytes = GZipCodec(level: 9).encode(utf8.encode(json.encode(site)));
 

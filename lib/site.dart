@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:html/dom.dart';
-import 'package:html/parser.dart';
+import 'package:html/parser.dart' as html;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flutter_wordpress/flutter_wordpress.dart' as wp;
 import 'models.dart';
@@ -107,6 +107,18 @@ class Site {
 
     return sections[id].audioCount;
   }
+
+  /// Go through all content, make sure it's plain text, not HTML.
+  void parseHTML() {
+    sections.values.forEach((section) {
+      parseDataXml(section);
+      section.content.forEach((content) {
+        parseDataXml(content.media);
+        parseDataXml(content.mediaSection);
+        content.mediaSection?.media?.forEach(parseDataXml);
+      });
+    });
+  }
 }
 
 /// Load site from wordpress. Supports incremental update - if a [base] site is
@@ -147,10 +159,11 @@ Future<Site> fromWordPress(String wordpressUrl,
   site.sections.addAll(Map.fromEntries(newCategories.map((e) => MapEntry(
       e.id,
       Section(
-          id: e.id,
-          description: e.description,
-          title: e.name,
-          parentId: e.parent)))));
+        id: e.id,
+        parentId: e.parent,
+        title: e.name,
+        description: e.description,
+      )))));
 
   // Connect sections.
   for (final category in allCategories) {
@@ -173,7 +186,7 @@ Future<Site> fromWordPress(String wordpressUrl,
     }
 
     for (final categoryId in post.categoryIDs) {
-      site.sections[categoryId].content.add(content);
+      site.sections[categoryId].content.add(content.withParentId(categoryId));
     }
   }
 
@@ -227,8 +240,25 @@ Future<Site> fromWordPress(String wordpressUrl,
   return site;
 }
 
+void parseDataXml(SiteDataItem dataItem) {
+  if (dataItem == null) {
+    return;
+  }
+
+  dataItem.title = parseXml(dataItem.title);
+  dataItem.description = parseXml(dataItem.description);
+}
+
+String parseXml(String xmlString) {
+  if (xmlString == null) {
+    return null;
+  }
+  final xml = html.parseFragment(xmlString.replaceAll('<br>', '\n'));
+  return xml.children.map((e) => e.text).join(' ').trim();
+}
+
 SectionContent _parsePost(Site site, wp.Post post) {
-  final xml = parse(post.content.rendered?.replaceAll('<br>', '\n'));
+  final xml = html.parseFragment(post.content.rendered);
 
   final audios = xml.querySelectorAll('.wp-block-audio');
 
@@ -240,7 +270,7 @@ SectionContent _parsePost(Site site, wp.Post post) {
     return null;
   }
 
-  var description = xml.children.map((e) => e.text).join(' ').trim();
+  var description = xml.outerHtml;
 
   // If it doesn't have a good description, forget about it.
   // In particular, sometimes the description will be "MP3"
@@ -253,7 +283,8 @@ SectionContent _parsePost(Site site, wp.Post post) {
         description: description,
         title: post.title.rendered,
         order:
-            post.customFields == null ? null : post.customFields['menu_order']);
+            post.customFields == null ? null : post.customFields['menu_order'])
+      ..id = post.id;
 
     return media == null ? null : SectionContent(media: media);
   } else {
@@ -274,9 +305,12 @@ SectionContent _parsePost(Site site, wp.Post post) {
 
     return SectionContent(
         mediaSection: MediaSection(
+            id: post.id,
+            // Media is duplicated for each parent, and set there.
+            parentId: null,
+            title: post.title.rendered,
             description: description,
             media: medias,
-            title: post.title.rendered,
             order: post.customFields['menu_order']));
   }
 }

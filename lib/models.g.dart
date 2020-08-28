@@ -8,52 +8,62 @@ part of 'models.dart';
 
 class SectionAdapter extends TypeAdapter<Section> {
   @override
-  final typeId = 1;
+  final int typeId = 1;
 
   @override
   Section read(BinaryReader reader) {
-    var numOfFields = reader.readByte();
-    var fields = <int, dynamic>{
-      for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Section(
-      id: fields[2] as int,
-      audioCount: fields[3] as int,
-      parentId: fields[5] as int,
+      audioCount: fields[4] as int,
     )
-      ..content = (fields[4] as List)?.cast<SectionContent>()
-      ..title = fields[0] as String
-      ..description = fields[1] as String;
+      ..content = (fields[5] as List)?.cast<SectionContent>()
+      ..id = fields[0] as int
+      ..parentId = fields[1] as int
+      ..title = fields[2] as String
+      ..description = fields[3] as String;
   }
 
   @override
   void write(BinaryWriter writer, Section obj) {
     writer
       ..writeByte(6)
-      ..writeByte(2)
-      ..write(obj.id)
-      ..writeByte(3)
-      ..write(obj.audioCount)
       ..writeByte(4)
-      ..write(obj.content)
+      ..write(obj.audioCount)
       ..writeByte(5)
-      ..write(obj.parentId)
+      ..write(obj.content)
       ..writeByte(0)
-      ..write(obj.title)
+      ..write(obj.id)
       ..writeByte(1)
+      ..write(obj.parentId)
+      ..writeByte(2)
+      ..write(obj.title)
+      ..writeByte(3)
       ..write(obj.description);
   }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SectionAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
 
 class SectionContentAdapter extends TypeAdapter<SectionContent> {
   @override
-  final typeId = 2;
+  final int typeId = 2;
 
   @override
   SectionContent read(BinaryReader reader) {
-    var numOfFields = reader.readByte();
-    var fields = <int, dynamic>{
-      for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return SectionContent(
       sectionId: fields[0] as int,
@@ -73,92 +83,128 @@ class SectionContentAdapter extends TypeAdapter<SectionContent> {
       ..writeByte(2)
       ..write(obj.mediaSection);
   }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SectionContentAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
 
 class MediaAdapter extends TypeAdapter<Media> {
   @override
-  final typeId = 3;
+  final int typeId = 3;
 
   @override
   Media read(BinaryReader reader) {
-    var numOfFields = reader.readByte();
-    var fields = <int, dynamic>{
-      for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Media(
-      source: fields[2] as String,
-      parentId: fields[4] as int,
-      order: fields[5] as int,
+      source: fields[4] as String,
+      order: fields[6] as int,
     )
-      .._length = fields[3] as int
-      ..title = fields[0] as String
-      ..description = fields[1] as String;
+      .._length = fields[5] as int
+      ..id = fields[0] as int
+      ..parentId = fields[1] as int
+      ..title = fields[2] as String
+      ..description = fields[3] as String;
   }
 
   @override
   void write(BinaryWriter writer, Media obj) {
     writer
-      ..writeByte(6)
-      ..writeByte(2)
-      ..write(obj.source)
-      ..writeByte(3)
-      ..write(obj._length)
+      ..writeByte(7)
       ..writeByte(4)
-      ..write(obj.parentId)
+      ..write(obj.source)
       ..writeByte(5)
+      ..write(obj._length)
+      ..writeByte(6)
       ..write(obj.order)
       ..writeByte(0)
-      ..write(obj.title)
+      ..write(obj.id)
       ..writeByte(1)
+      ..write(obj.parentId)
+      ..writeByte(2)
+      ..write(obj.title)
+      ..writeByte(3)
       ..write(obj.description);
   }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MediaAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
 
 class MediaSectionAdapter extends TypeAdapter<MediaSection> {
   @override
-  final typeId = 4;
+  final int typeId = 4;
 
   @override
   MediaSection read(BinaryReader reader) {
-    var numOfFields = reader.readByte();
-    var fields = <int, dynamic>{
-      for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return MediaSection(
-      media: (fields[2] as List)?.cast<Media>(),
-      parentId: fields[3] as int,
-      order: fields[4] as int,
+      media: (fields[4] as List)?.cast<Media>(),
+      order: fields[5] as int,
     )
-      ..title = fields[0] as String
-      ..description = fields[1] as String;
+      ..id = fields[0] as int
+      ..parentId = fields[1] as int
+      ..title = fields[2] as String
+      ..description = fields[3] as String;
   }
 
   @override
   void write(BinaryWriter writer, MediaSection obj) {
     writer
-      ..writeByte(5)
-      ..writeByte(2)
-      ..write(obj.media)
-      ..writeByte(3)
-      ..write(obj.parentId)
+      ..writeByte(6)
       ..writeByte(4)
+      ..write(obj.media)
+      ..writeByte(5)
       ..write(obj.order)
       ..writeByte(0)
-      ..write(obj.title)
+      ..write(obj.id)
       ..writeByte(1)
+      ..write(obj.parentId)
+      ..writeByte(2)
+      ..write(obj.title)
+      ..writeByte(3)
       ..write(obj.description);
   }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MediaSectionAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
 
 class TopItemAdapter extends TypeAdapter<TopItem> {
   @override
-  final typeId = 5;
+  final int typeId = 5;
 
   @override
   TopItem read(BinaryReader reader) {
-    var numOfFields = reader.readByte();
-    var fields = <int, dynamic>{
-      for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return TopItem(
       sectionId: fields[0] as int,
@@ -175,6 +221,16 @@ class TopItemAdapter extends TypeAdapter<TopItem> {
       ..writeByte(1)
       ..write(obj.title);
   }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TopItemAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
 
 // **************************************************************************
@@ -184,6 +240,7 @@ class TopItemAdapter extends TypeAdapter<TopItem> {
 Section _$SectionFromJson(Map<String, dynamic> json) {
   return Section(
     id: json['id'] as int,
+    parentId: json['parentId'] as int,
     title: json['title'],
     description: json['description'] as String,
     content: (json['content'] as List)
@@ -192,17 +249,16 @@ Section _$SectionFromJson(Map<String, dynamic> json) {
             : SectionContent.fromJson(e as Map<String, dynamic>))
         ?.toList(),
     audioCount: json['audioCount'] as int,
-    parentId: json['parentId'] as int,
   );
 }
 
 Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
+      'id': instance.id,
+      'parentId': instance.parentId,
       'title': instance.title,
       'description': instance.description,
-      'id': instance.id,
       'audioCount': instance.audioCount,
       'content': instance.content,
-      'parentId': instance.parentId,
     };
 
 SectionContent _$SectionContentFromJson(Map<String, dynamic> json) {
@@ -229,45 +285,49 @@ Map<String, dynamic> _$SectionContentToJson(SectionContent instance) =>
 
 Media _$MediaFromJson(Map<String, dynamic> json) {
   return Media(
-    source: json['source'] as String,
+    id: json['id'] as int,
     parentId: json['parentId'] as int,
+    title: json['title'] as String,
+    description: json['description'] as String,
+    source: json['source'] as String,
     order: json['order'] as int,
     length: json['length'] == null
         ? null
         : Duration(microseconds: json['length'] as int),
-    title: json['title'] as String,
-    description: json['description'] as String,
   );
 }
 
 Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
+      'id': instance.id,
+      'parentId': instance.parentId,
       'title': instance.title,
       'description': instance.description,
       'source': instance.source,
-      'parentId': instance.parentId,
       'order': instance.order,
       'length': instance.length?.inMicroseconds,
     };
 
 MediaSection _$MediaSectionFromJson(Map<String, dynamic> json) {
   return MediaSection(
+    id: json['id'] as int,
+    parentId: json['parentId'] as int,
+    title: json['title'],
+    description: json['description'] as String,
     media: (json['media'] as List)
         ?.map(
             (e) => e == null ? null : Media.fromJson(e as Map<String, dynamic>))
         ?.toList(),
-    parentId: json['parentId'] as int,
     order: json['order'] as int,
-    title: json['title'],
-    description: json['description'] as String,
   );
 }
 
 Map<String, dynamic> _$MediaSectionToJson(MediaSection instance) =>
     <String, dynamic>{
+      'id': instance.id,
+      'parentId': instance.parentId,
       'title': instance.title,
       'description': instance.description,
       'media': instance.media,
-      'parentId': instance.parentId,
       'order': instance.order,
     };
 
