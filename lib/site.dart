@@ -24,6 +24,7 @@ class Site {
 
   /// Flatten the category tree as much as possible.
   void compressSections() {
+    // Remove empty sections.
     final emptyIds = sections.values
         .where((value) => value.audioCount == 0 || value.audioCount == null)
         .map((e) => e.id)
@@ -33,6 +34,7 @@ class Site {
       sections.remove(id);
     }
 
+    // Remove references to empty sections.
     for (final section in sections.values) {
       section.content
           .removeWhere((element) => emptyIds.contains(element.sectionId));

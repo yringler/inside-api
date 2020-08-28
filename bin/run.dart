@@ -33,7 +33,6 @@ void main(List<String> arguments) async {
   }
 
   site.setAudioCount();
-  site.parseHTML();
 
   final classListFile = File('scriptlets/audiolength/classlist.json');
   final classList = _getClassList(site);
@@ -87,9 +86,9 @@ Future<void> _updateLatestLocalCloud(Site site) async {
     site.parseHTML();
     await _setCurrentVersionDate(site.createdDate);
 
+    print('uploading...');
+    await _uploadToDropbox(site);
     if (!isDebug) {
-      print('uploading...');
-      await _uploadToDropbox(site);
       print('notifying...');
       await _notifyApiOfLatest(site.createdDate);
     } else {
@@ -120,6 +119,10 @@ Future<void> _uploadToDropbox(Site site) async {
   site.compressSections();
   final key = await File('.droptoken.txt').readAsString();
   await File('dropbox.json').writeAsString(json.encode(site));
+
+  if (isDebug) {
+    return;
+  }
 
   var request = Request(
       'POST', Uri.parse('https://content.dropboxapi.com/2/files/upload'))

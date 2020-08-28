@@ -86,30 +86,43 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
         parent.content.indexWhere((element) => element.sectionId == id);
 
     if (index >= 0 && audioCount > 0) {
-      parent.content.replaceRange(index, index + 1, content);
+      /*
+       * Move content to parent.
+       * Media, media sections, and child sections all need their parents set to
+       * new parent.
+       */
+
+      // Start with the easy stuff: media and media section.
+      final newContentInParent =
+          content.map((e) => e.withParentId(parentId)).toList();
+
+      // Update child sections.
+      for (final contentId in newContentInParent
+          .where((element) => element.sectionId != null)
+          .map((e) => e.sectionId)) {
+        final section = site.sections[contentId];
+        if (section == null) {
+          // This happens because these items where removed in site.remove without
+          // removing them from their parents
+          stderr.writeln('Error: not found: $contentId in ${id}');
+        } else {
+          site.sections[section.id].parentId = parentId;
+        }
+      }
+      parent.content.replaceRange(
+        index,
+        index + 1,
+        newContentInParent,
+      );
     }
 
     if (index == -1) {
       stderr.writeln('Not found in parent: $id in $parentId');
     }
 
+    // Purge references to this section.
     site.sections.remove(id);
     parent.content.removeWhere((element) => element.sectionId == id);
-
-    // Give all children a new parent. Namely, the parent of this section, which
-    // is being removed.
-    for (final id in content
-        .where((element) => element.sectionId != null)
-        .map((e) => e.sectionId)) {
-      final section = site.sections[id];
-      if (section == null) {
-        // This happens because these items where removed in site.remove without
-        // removing them from their parents
-        stderr.writeln('Error: not found: $id in ${this.id}');
-      } else {
-        site.sections[section.id] = section.copyWith(parentId: parentId);
-      }
-    }
 
     return true;
   }
@@ -149,7 +162,8 @@ class SectionContent implements SectionReference {
   /// Create copy of current data, but with parent set to given parent.
   SectionContent withParentId(int parentId) => SectionContent(
       media: media?.copyWith(parentId: parentId),
-      mediaSection: mediaSection?.copyWith(parentId: parentId));
+      mediaSection: mediaSection?.copyWith(parentId: parentId),
+      sectionId: sectionId);
 }
 
 @HiveType(typeId: 3)
