@@ -248,6 +248,7 @@ void parseDataXml(SiteDataItem dataItem) {
   }
 
   dataItem.title = parseXml(dataItem.title);
+
   dataItem.description = parseXml(dataItem.description);
 }
 
@@ -255,8 +256,11 @@ String parseXml(String xmlString) {
   if (xmlString == null) {
     return null;
   }
+
   final xml = html.parseFragment(xmlString.replaceAll('<br>', '\n'));
-  return xml.children.map((e) => e.text).join(' ').trim();
+  final returnValue = xml.children.map((e) => e.text).join(' ').trim();
+
+  return returnValue.isNotEmpty ? returnValue : xmlString;
 }
 
 SectionContent _parsePost(Site site, wp.Post post) {
