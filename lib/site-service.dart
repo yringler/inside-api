@@ -141,10 +141,10 @@ Future<SiteBoxes> _getSiteBoxesNoData({String path}) async {
   hive.init(path);
 
   var metaBox = await hive.openBox('meta');
-  final currentVersionInUse = metaBox.get('dataversion');
+  final currentVersionInUse = metaBox.get('dataversion', defaultValue: 0);
 
   // Don't try to load data if it's of an older type.
-  if (currentVersionInUse != null && currentVersionInUse < dataVersion) {
+  if (currentVersionInUse < dataVersion) {
     await hive.deleteFromDisk();
     await Directory(path).delete(recursive: true);
   }
