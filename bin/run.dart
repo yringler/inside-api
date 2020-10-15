@@ -11,7 +11,7 @@ final currentRawSiteFile = File('rawsite.current.json');
 const dataVersion = 2;
 const dropBoxFile = '/site.v$dataVersion.json.gz';
 const isDebug = false;
-const sourceUrl = isDebug ? 'http://localhost' : 'https://insidechassidus.org/';
+const sourceUrl = 'https://insidechassidus.org/';
 
 /// The number of media URLs which 404, and will always have duration 0
 const numInvalidMedia = 4;
@@ -79,7 +79,7 @@ Future<void> _updateLatestLocalCloud(Site site) async {
   var newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if (rawContents != newJson) {
+  if (rawContents != newJson || isDebug) {
     site.createdDate = DateTime.now();
     site.parseHTML();
 

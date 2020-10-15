@@ -263,7 +263,7 @@ String parseXml(String xmlString) {
   final xml = html.parse(xmlString.replaceAll('<br>', '\n'));
   final returnValue = xml.children.map((e) => e.text).join(' ').trim();
 
-  return htmlUnescape.convert(returnValue.isNotEmpty ? returnValue : xmlString);
+  return returnValue.isEmpty ? '' : htmlUnescape.convert(returnValue);
 }
 
 SectionContent _parsePost(Site site, wp.Post post) {
@@ -279,7 +279,7 @@ SectionContent _parsePost(Site site, wp.Post post) {
     return null;
   }
 
-  var description = xml.outerHtml;
+  var description = parseXml(xml.outerHtml);
 
   // If it doesn't have a good description, forget about it.
   // In particular, sometimes the description will be "MP3"
