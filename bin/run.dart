@@ -49,7 +49,6 @@ void main(List<String> arguments) async {
   print('set duration');
   await _setSiteDuration(site);
 
-  print('update latest');
   await _updateLatestLocalCloud(site);
   print('returning');
   exit(0);
@@ -79,7 +78,9 @@ Future<void> _updateLatestLocalCloud(Site site) async {
   var newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if (rawContents != newJson || isDebug) {
+  if (rawContents != newJson || isDebug || true) {
+    print('update latest');
+
     site.createdDate = DateTime.now();
     site.parseHTML();
 
