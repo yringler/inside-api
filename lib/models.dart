@@ -200,10 +200,10 @@ class Media extends SiteDataItem {
   Map<String, dynamic> toJson() => _$MediaToJson(this);
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
 
-  Media copyWith({Duration length, int parentId}) => Media(
+  Media copyWith({Duration length, int parentId, String source}) => Media(
       description: description,
       length: length ?? this.length,
-      source: source,
+      source: source ?? this.source,
       title: title,
       order: order,
       parentId: parentId ?? this.parentId,
