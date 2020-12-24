@@ -191,7 +191,7 @@ Future<Site> fromWordPress(String wordpressUrl,
     }
 
     for (final categoryId in post.categoryIDs) {
-      site.sections[categoryId].content.add(content.withParentId(categoryId));
+      site.sections[categoryId].content.add(content.copyWith(categoryId));
     }
   }
 

@@ -17,13 +17,13 @@ class SectionAdapter extends TypeAdapter<Section> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Section(
+      id: fields[0] as int,
+      parentId: fields[1] as int,
+      title: fields[2] as dynamic,
+      description: fields[3] as String,
+      content: (fields[5] as List)?.cast<SectionContent>(),
       audioCount: fields[4] as int,
-    )
-      ..content = (fields[5] as List)?.cast<SectionContent>()
-      ..id = fields[0] as int
-      ..parentId = fields[1] as int
-      ..title = fields[2] as String
-      ..description = fields[3] as String;
+    );
   }
 
   @override
@@ -106,26 +106,28 @@ class MediaAdapter extends TypeAdapter<Media> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Media(
+      id: fields[0] as int,
+      parentId: fields[1] as int,
+      title: fields[2] as String,
+      description: fields[3] as String,
       source: fields[4] as String,
       order: fields[6] as int,
-    )
-      .._length = fields[5] as int
-      ..id = fields[0] as int
-      ..parentId = fields[1] as int
-      ..title = fields[2] as String
-      ..description = fields[3] as String;
+      parentSectionId: fields[7] as int,
+    ).._length = fields[5] as int;
   }
 
   @override
   void write(BinaryWriter writer, Media obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(4)
       ..write(obj.source)
       ..writeByte(5)
       ..write(obj._length)
       ..writeByte(6)
       ..write(obj.order)
+      ..writeByte(7)
+      ..write(obj.parentSectionId)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -158,13 +160,13 @@ class MediaSectionAdapter extends TypeAdapter<MediaSection> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return MediaSection(
+      id: fields[0] as int,
+      parentId: fields[1] as int,
+      title: fields[2] as dynamic,
+      description: fields[3] as String,
       media: (fields[4] as List)?.cast<Media>(),
       order: fields[5] as int,
-    )
-      ..id = fields[0] as int
-      ..parentId = fields[1] as int
-      ..title = fields[2] as String
-      ..description = fields[3] as String;
+    );
   }
 
   @override
@@ -291,6 +293,7 @@ Media _$MediaFromJson(Map<String, dynamic> json) {
     description: json['description'] as String,
     source: json['source'] as String,
     order: json['order'] as int,
+    parentSectionId: json['parentSectionId'] as int,
     length: json['length'] == null
         ? null
         : Duration(microseconds: json['length'] as int),
@@ -304,6 +307,7 @@ Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
       'description': instance.description,
       'source': instance.source,
       'order': instance.order,
+      'parentSectionId': instance.parentSectionId,
       'length': instance.length?.inMicroseconds,
     };
 
