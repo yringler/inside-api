@@ -19,6 +19,21 @@ class SiteDataItem {
   @HiveField(3)
   String description;
 
+  /// This is silly... Returns the ID of closest parent. Which is always [id],
+  /// except for with [Media]...
+  int get closestSectionId => id;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is SiteDataItem) {
+      return id == other.id &&
+          parentId == other.parentId &&
+          title == other.title;
+    }
+
+    return false;
+  }
+
   SiteDataItem({this.id, this.parentId, this.title, this.description});
 }
 
@@ -162,8 +177,7 @@ class SectionContent implements SectionReference {
   /// Create copy of current data, but with parent set to given parent.
   SectionContent copyWith(int parentId) => SectionContent(
       media: media?.copyWith(parentId: parentId),
-      mediaSection:
-          mediaSection?.copyWith(parentId: parentId, parentSectionId: parentId),
+      mediaSection: mediaSection?.copyWith(parentId: parentId),
       sectionId: sectionId);
 }
 
@@ -184,6 +198,9 @@ class Media extends SiteDataItem {
   /// navigation from [Media] to [Section]
   @HiveField(7)
   final int parentSectionId;
+
+  @override
+  int get closestSectionId => parentSectionId;
 
   Media({
     int id,
@@ -211,6 +228,15 @@ class Media extends SiteDataItem {
 
   Map<String, dynamic> toJson() => _$MediaToJson(this);
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is Media) {
+      return source == other.source;
+    }
+
+    return false;
+  }
 
   Media copyWith(
           {Duration length,
@@ -252,19 +278,16 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
   factory MediaSection.fromJson(Map<String, dynamic> json) =>
       _$MediaSectionFromJson(json);
 
-  MediaSection copyWith(
-          {List<Media> media, int parentId, int parentSectionId}) =>
-      MediaSection(
-          description: description,
-          media: media ??
-              (parentSectionId == null
-                  ? this.media
-                  : this.media.map(
-                      (e) => e.copyWith(parentSectionId: parentSectionId))),
-          title: title,
-          order: order,
-          id: id,
-          parentId: parentId ?? this.parentId);
+  MediaSection copyWith({List<Media> media, int parentId}) => MediaSection(
+      description: description,
+      media: media ??
+          (parentId == null
+              ? this.media
+              : this.media.map((e) => e.copyWith(parentSectionId: parentId))),
+      title: title,
+      order: order,
+      id: id,
+      parentId: parentId ?? this.parentId);
 
   @override
   int get audioCount => media.length;
