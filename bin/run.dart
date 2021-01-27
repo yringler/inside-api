@@ -11,7 +11,7 @@ final currentRawSiteFile = File('rawsite.current.json');
 const dataVersion = 2;
 const dropBoxFile = '/site.v$dataVersion.json.gz';
 const isDebug = true;
-const sourceUrl = 'https://insidechassidus.org/';
+const sourceUrl = isDebug ? 'http://localhost/' : 'https://insidechassidus.org/';
 
 /// The number of media URLs which 404, and will always have duration 0
 const numInvalidMedia = 4;
