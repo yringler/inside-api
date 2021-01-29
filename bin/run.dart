@@ -11,7 +11,8 @@ final currentRawSiteFile = File('rawsite.current.json');
 const dataVersion = 2;
 const dropBoxFile = '/site.v$dataVersion.json.gz';
 const isDebug = true;
-const sourceUrl = isDebug ? 'http://localhost/' : 'https://insidechassidus.org/';
+const sourceUrl =
+    isDebug ? 'http://localhost/' : 'https://insidechassidus.org/';
 
 /// The number of media URLs which 404, and will always have duration 0
 const numInvalidMedia = 4;
@@ -120,12 +121,13 @@ Future<void> _notifyApiOfLatest(DateTime date) async {
 /// (Thank you, Raj @https://stackoverflow.com/a/56572616)
 Future<void> _uploadToDropbox(Site site) async {
   site.compressSections();
-  final key = await File('.droptoken.txt').readAsString();
   await File('dropbox.json').writeAsString(json.encode(site));
 
   if (isDebug) {
     return;
   }
+
+  final key = await File('.droptoken.txt').readAsString();
 
   var request = Request(
       'POST', Uri.parse('https://content.dropboxapi.com/2/files/upload'))
