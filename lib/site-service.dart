@@ -8,7 +8,7 @@ import 'package:inside_api/models.dart';
 import 'package:path/path.dart' as p;
 
 /// Version code for the data storage format.
-const int dataVersion = 3;
+const int dataVersion = 4;
 
 /// [hivePath] is where the data should be stored.
 /// [rawData] is the entirety of the site JSON.

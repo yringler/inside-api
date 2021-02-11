@@ -19,9 +19,9 @@ class SiteDataItem {
   @HiveField(3)
   String description;
 
-  /// This is silly... Returns the ID of closest parent. Which is always [id],
+  /// This is silly... Returns the ID of closest parent. Which is always [parentId],
   /// except for with [Media]...
-  int get closestSectionId => id;
+  int get closestSectionId => parentId;
 
   @override
   bool operator ==(Object other) {
