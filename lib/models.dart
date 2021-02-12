@@ -200,7 +200,7 @@ class Media extends SiteDataItem {
   final int parentSectionId;
 
   @override
-  int get closestSectionId => parentSectionId;
+  int get closestSectionId => parentSectionId ?? parentId;
 
   Media({
     int id,
