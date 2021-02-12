@@ -222,10 +222,6 @@ class Media extends SiteDataItem {
   Duration get length => Duration(milliseconds: _length);
   set length(Duration value) => _length = value.inMilliseconds;
 
-  /// The parent ID which is a section stored in hive. In a [MediaSection], that
-  /// is the [parentSectionId], otherwise it's the [parentId].
-  int get hiveParentId => parentSectionId ?? parentId;
-
   Map<String, dynamic> toJson() => _$MediaToJson(this);
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
 
