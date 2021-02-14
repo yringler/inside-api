@@ -3,14 +3,14 @@ import 'dart:io';
 
 import 'package:http/http.dart';
 import 'package:inside_api/models.dart';
+import 'package:inside_api/site-service.dart';
 import 'package:process_run/process_run.dart' as process;
 
 final encoder = JsonEncoder.withIndent('\t');
 final currentRawSiteFile = File('rawsite.current.json');
 
-const dataVersion = 2;
 const dropBoxFile = '/site.v$dataVersion.json.gz';
-const isDebug = true;
+const isDebug = false;
 const sourceUrl =
     isDebug ? 'http://localhost/' : 'https://insidechassidus.org/';
 
@@ -79,7 +79,7 @@ Future<void> _updateLatestLocalCloud(Site site) async {
   var newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if (rawContents != newJson || isDebug) {
+  if (rawContents != newJson || isDebug || true) {
     print('update latest');
 
     site.createdDate = DateTime.now();
