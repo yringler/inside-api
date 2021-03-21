@@ -3,15 +3,16 @@ import 'dart:io';
 
 import 'package:http/http.dart';
 import 'package:inside_api/models.dart';
+import 'package:inside_api/site-service.dart';
 import 'package:process_run/process_run.dart' as process;
 
 final encoder = JsonEncoder.withIndent('\t');
 final currentRawSiteFile = File('rawsite.current.json');
 
-const dataVersion = 2;
 const dropBoxFile = '/site.v$dataVersion.json.gz';
 const isDebug = false;
-const sourceUrl = 'https://insidechassidus.org/';
+const sourceUrl =
+    isDebug ? 'http://localhost/' : 'https://insidechassidus.org/';
 
 /// The number of media URLs which 404, and will always have duration 0
 const numInvalidMedia = 4;
@@ -78,7 +79,7 @@ Future<void> _updateLatestLocalCloud(Site site) async {
   var newJson = encoder.convert(site);
 
   // If newest is diffirent from current.
-  if (rawContents != newJson || isDebug) {
+  if (rawContents != newJson || isDebug || true) {
     print('update latest');
 
     site.createdDate = DateTime.now();
@@ -120,12 +121,13 @@ Future<void> _notifyApiOfLatest(DateTime date) async {
 /// (Thank you, Raj @https://stackoverflow.com/a/56572616)
 Future<void> _uploadToDropbox(Site site) async {
   site.compressSections();
-  final key = await File('.droptoken.txt').readAsString();
   await File('dropbox.json').writeAsString(json.encode(site));
 
   if (isDebug) {
     return;
   }
+
+  final key = await File('.droptoken.txt').readAsString();
 
   var request = Request(
       'POST', Uri.parse('https://content.dropboxapi.com/2/files/upload'))
