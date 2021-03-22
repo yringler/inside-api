@@ -112,7 +112,7 @@ class MediaAdapter extends TypeAdapter<Media> {
       description: fields[3] as String,
       source: fields[4] as String,
       order: fields[6] as int,
-      parentSectionId: fields[7] as int,
+      sectionId: fields[7] as int,
     ).._length = fields[5] as int;
   }
 
@@ -127,7 +127,7 @@ class MediaAdapter extends TypeAdapter<Media> {
       ..writeByte(6)
       ..write(obj.order)
       ..writeByte(7)
-      ..write(obj.parentSectionId)
+      ..write(obj.sectionId)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -293,7 +293,7 @@ Media _$MediaFromJson(Map<String, dynamic> json) {
     description: json['description'] as String,
     source: json['source'] as String,
     order: json['order'] as int,
-    parentSectionId: json['parentSectionId'] as int,
+    sectionId: json['parentSectionId'] as int,
     length: json['length'] == null
         ? null
         : Duration(microseconds: json['length'] as int),
@@ -307,7 +307,7 @@ Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
       'description': instance.description,
       'source': instance.source,
       'order': instance.order,
-      'parentSectionId': instance.parentSectionId,
+      'parentSectionId': instance.sectionId,
       'length': instance.length?.inMicroseconds,
     };
 

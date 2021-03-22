@@ -65,22 +65,44 @@ class SiteBoxes {
     return section;
   }
 
-  /// Set the section references of passed in list.
-  Future<List<SectionReference>> resolveIterable(
-      List<SectionReference> references) async {
-    final sectionFutures =
-        references.map((e) => sections.get(e.sectionId)).toList();
+  /// Returns the parent of the given data item.
+  Future<void> resolveParent<T extends SectionReference>(T child) async {
+    if (child.sectionId ?? 0 == 0) {
+      return;
+    }
 
-    if (sectionFutures.isEmpty) {
+    if (child.section != null) {
+      return;
+    }
+
+    final parent = await sections.get(child.sectionId);
+
+    if (parent == null) {
+      return;
+    }
+
+    child.section = parent;
+
+    if (parent.id != child.parentId) {
+      child.parent = parent.content
+          .firstWhere((element) => element.mediaSection?.id == child.parentId)
+          .mediaSection
+          .media
+          .firstWhere((element) => element.id == child.parentId);
+    }
+
+    return;
+  }
+
+  Future<List<T>> resolveIterable<T extends SectionReference>(
+      List<T> references) async {
+    final parentFutures = references.map((e) => resolveParent(e)).toList();
+
+    if (parentFutures.isEmpty) {
       return references;
     }
 
-    final sectionMap = Map.fromEntries(
-        (await Future.wait(sectionFutures)).map((e) => MapEntry(e.id, e)));
-
-    for (final s in references) {
-      s.section = sectionMap[s.sectionId];
-    }
+    await Future.wait(parentFutures);
 
     return references;
   }

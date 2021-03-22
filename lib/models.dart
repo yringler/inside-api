@@ -9,9 +9,11 @@ export 'site.dart';
 part 'models.g.dart';
 
 /// Basic site data which is common to all particular site data items.
-class SiteDataItem {
+class SiteDataItem implements SectionReference {
   @HiveField(0)
   int id;
+
+  @override
   @HiveField(1)
   int parentId;
   @HiveField(2)
@@ -19,9 +21,14 @@ class SiteDataItem {
   @HiveField(3)
   String description;
 
-  /// This is silly... Returns the ID of closest parent. Which is always [parentId],
-  /// except for with [Media]...
-  int get closestSectionId => parentId;
+  @override
+  SiteDataItem parent;
+
+  @override
+  Section section;
+
+  @override
+  int get sectionId => parentId;
 
   @override
   bool operator ==(Object other) {
@@ -42,15 +49,26 @@ abstract class CountableSiteDataItem implements SiteDataItem {
 }
 
 // A class which contains a reference to a section.
-abstract class SectionReference {
+abstract class SectionReference implements ParentReference {
   int get sectionId;
   Section section;
+
+  @override
+  int get parentId => sectionId;
+  @override
+  SiteDataItem get parent => section;
+  @override
+  set parent(SiteDataItem value) => section = value;
 }
 
-@HiveType(typeId: 1)
-@JsonSerializable()
+abstract class ParentReference {
+  int get parentId;
+  SiteDataItem parent;
+}
 
 /// One section. A section contains any amount of media or child sections.
+@HiveType(typeId: 1)
+@JsonSerializable()
 class Section extends SiteDataItem implements CountableSiteDataItem {
   @override
   @HiveField(4)
@@ -148,7 +166,7 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
 /// It is an error to provide two data points to one [SectionContent].
 @JsonSerializable()
 @HiveType(typeId: 2)
-class SectionContent implements SectionReference {
+class SectionContent extends SectionReference {
   @HiveField(0)
   @override
   final int sectionId;
@@ -193,14 +211,11 @@ class Media extends SiteDataItem {
   @HiveField(6)
   final int order;
 
-  /// In a [MediaSection], [parentId] is the ID of that [MediaSection] and [parentSectionId]
-  /// is the ID of the [Section] in which the [MediaSection] resides. This property simplifies
-  /// navigation from [Media] to [Section]
+  /// In a [MediaSection], [parentId] is the ID of that [MediaSection] and [sectionId]
+  /// is the ID of the [Section] in which the [MediaSection] resides.
   @HiveField(7)
-  final int parentSectionId;
-
   @override
-  int get closestSectionId => parentSectionId ?? parentId;
+  final int sectionId;
 
   Media({
     int id,
@@ -209,7 +224,7 @@ class Media extends SiteDataItem {
     String description,
     this.source,
     this.order,
-    this.parentSectionId,
+    this.sectionId,
     Duration length,
   })  : _length = length?.inMilliseconds ?? 0,
         super(
@@ -235,10 +250,7 @@ class Media extends SiteDataItem {
   }
 
   Media copyWith(
-          {Duration length,
-          int parentId,
-          String source,
-          int parentSectionId}) =>
+          {Duration length, int parentId, String source, int sectionId}) =>
       Media(
           description: description,
           length: length ?? this.length,
@@ -246,7 +258,7 @@ class Media extends SiteDataItem {
           title: title,
           order: order,
           parentId: parentId ?? this.parentId,
-          parentSectionId: parentSectionId ?? this.parentSectionId,
+          sectionId: sectionId ?? this.sectionId,
           id: id);
 }
 
@@ -279,9 +291,7 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
       media: media ??
           (parentId == null
                   ? this.media
-                  : this
-                      .media
-                      .map((e) => e.copyWith(parentSectionId: parentId)))
+                  : this.media.map((e) => e.copyWith(sectionId: parentId)))
               .toList(),
       title: title,
       order: order,

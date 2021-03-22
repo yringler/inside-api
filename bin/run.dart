@@ -10,7 +10,7 @@ final encoder = JsonEncoder.withIndent('\t');
 final currentRawSiteFile = File('rawsite.current.json');
 
 const dropBoxFile = '/site.v$dataVersion.json.gz';
-const isDebug = false;
+const isDebug = true;
 const sourceUrl =
     isDebug ? 'http://localhost/' : 'https://insidechassidus.org/';
 
