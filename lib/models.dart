@@ -19,6 +19,21 @@ class SiteDataItem {
   @HiveField(3)
   String description;
 
+  /// This is silly... Returns the ID of closest parent. Which is always [parentId],
+  /// except for with [Media]...
+  int get closestSectionId => parentId;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is SiteDataItem) {
+      return id == other.id &&
+          parentId == other.parentId &&
+          title == other.title;
+    }
+
+    return false;
+  }
+
   SiteDataItem({this.id, this.parentId, this.title, this.description});
 }
 
@@ -94,7 +109,7 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
 
       // Start with the easy stuff: media and media section.
       final newContentInParent =
-          content.map((e) => e.withParentId(parentId)).toList();
+          content.map((e) => e.copyWith(parentId)).toList();
 
       // Update child sections.
       for (final contentId in newContentInParent
@@ -160,7 +175,7 @@ class SectionContent implements SectionReference {
       _$SectionContentFromJson(json);
 
   /// Create copy of current data, but with parent set to given parent.
-  SectionContent withParentId(int parentId) => SectionContent(
+  SectionContent copyWith(int parentId) => SectionContent(
       media: media?.copyWith(parentId: parentId),
       mediaSection: mediaSection?.copyWith(parentId: parentId),
       sectionId: sectionId);
@@ -178,6 +193,15 @@ class Media extends SiteDataItem {
   @HiveField(6)
   final int order;
 
+  /// In a [MediaSection], [parentId] is the ID of that [MediaSection] and [parentSectionId]
+  /// is the ID of the [Section] in which the [MediaSection] resides. This property simplifies
+  /// navigation from [Media] to [Section]
+  @HiveField(7)
+  final int parentSectionId;
+
+  @override
+  int get closestSectionId => parentSectionId ?? parentId;
+
   Media({
     int id,
     int parentId,
@@ -185,6 +209,7 @@ class Media extends SiteDataItem {
     String description,
     this.source,
     this.order,
+    this.parentSectionId,
     Duration length,
   })  : _length = length?.inMilliseconds ?? 0,
         super(
@@ -200,14 +225,29 @@ class Media extends SiteDataItem {
   Map<String, dynamic> toJson() => _$MediaToJson(this);
   factory Media.fromJson(Map<String, dynamic> json) => _$MediaFromJson(json);
 
-  Media copyWith({Duration length, int parentId, String source}) => Media(
-      description: description,
-      length: length ?? this.length,
-      source: source ?? this.source,
-      title: title,
-      order: order,
-      parentId: parentId ?? this.parentId,
-      id: id);
+  @override
+  bool operator ==(Object other) {
+    if (other is Media) {
+      return source == other.source;
+    }
+
+    return false;
+  }
+
+  Media copyWith(
+          {Duration length,
+          int parentId,
+          String source,
+          int parentSectionId}) =>
+      Media(
+          description: description,
+          length: length ?? this.length,
+          source: source ?? this.source,
+          title: title,
+          order: order,
+          parentId: parentId ?? this.parentId,
+          parentSectionId: parentSectionId ?? this.parentSectionId,
+          id: id);
 }
 
 /// A small section is a special case of section which only contains media
@@ -221,14 +261,9 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(5)
   final int order;
 
-  MediaSection({
-    int id,
-    int parentId,
-    title,
-    String description,
-    this.media,
-    this.order,
-  }) : super(
+  MediaSection(
+      {int id, int parentId, title, String description, this.media, this.order})
+      : super(
           id: id,
           parentId: parentId,
           title: title,
@@ -241,7 +276,13 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
 
   MediaSection copyWith({List<Media> media, int parentId}) => MediaSection(
       description: description,
-      media: media ?? this.media,
+      media: media ??
+          (parentId == null
+                  ? this.media
+                  : this
+                      .media
+                      .map((e) => e.copyWith(parentSectionId: parentId)))
+              .toList(),
       title: title,
       order: order,
       id: id,
@@ -269,7 +310,7 @@ class TopItem {
       _$TopItemFromJson(json);
 }
 
-// const topImages = {
+// var topImages = {
 //   21: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
 //   4: 'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
 //   56: 'https://insidechassidus.org/wp-content/uploads/History-and-Kaballah.jpg',
