@@ -62,8 +62,8 @@ abstract class SectionReference implements ParentReference {
 }
 
 extension SectionReferenceExtensions on SectionReference {
-  bool get hasSection => (sectionId ?? 0) > 0;
-  bool get hasParent => (parentId ?? 0) > 0;
+  bool get hasSection => this != null && (sectionId ?? 0) > 0;
+  bool get hasParent => this != null && (parentId ?? 0) > 0;
 }
 
 abstract class ParentReference {

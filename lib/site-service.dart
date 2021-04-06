@@ -89,6 +89,8 @@ class SiteBoxes {
           .mediaSection
           .media
           .firstWhere((element) => element.id == child.parentId);
+    } else {
+      child.parent = parent;
     }
 
     return;
