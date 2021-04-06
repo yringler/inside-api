@@ -61,6 +61,11 @@ abstract class SectionReference implements ParentReference {
   set parent(SiteDataItem value) => section = value;
 }
 
+extension SectionReferenceExtensions on SectionReference {
+  bool get hasSection => (sectionId ?? 0) > 0;
+  bool get hasParent => (parentId ?? 0) > 0;
+}
+
 abstract class ParentReference {
   int get parentId;
   SiteDataItem parent;

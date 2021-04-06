@@ -67,7 +67,7 @@ class SiteBoxes {
 
   /// Returns the parent of the given data item.
   Future<void> resolveParent<T extends SectionReference>(T child) async {
-    if (child.sectionId ?? 0 == 0) {
+    if (!child.hasParent) {
       return;
     }
 
