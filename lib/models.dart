@@ -11,17 +11,17 @@ part 'models.g.dart';
 /// Basic site data which is common to all particular site data items.
 class SiteDataItem {
   @HiveField(0)
-  int id;
+  int? id;
   @HiveField(1)
-  int parentId;
+  int? parentId;
   @HiveField(2)
-  String title;
+  String? title;
   @HiveField(3)
-  String description;
+  String? description;
 
   /// This is silly... Returns the ID of closest parent. Which is always [parentId],
   /// except for with [Media]...
-  int get closestSectionId => parentId;
+  int? get closestSectionId => parentId;
 
   @override
   bool operator ==(Object other) {
@@ -38,13 +38,13 @@ class SiteDataItem {
 }
 
 abstract class CountableSiteDataItem implements SiteDataItem {
-  int get audioCount;
+  int? get audioCount;
 }
 
 // A class which contains a reference to a section.
 abstract class SectionReference {
-  int get sectionId;
-  Section section;
+  int? get sectionId;
+  Section? section;
 }
 
 @HiveType(typeId: 1)
@@ -54,16 +54,16 @@ abstract class SectionReference {
 class Section extends SiteDataItem implements CountableSiteDataItem {
   @override
   @HiveField(4)
-  int audioCount;
+  int? audioCount;
   @HiveField(5)
   List<SectionContent> content;
 
   Section({
-    int id,
-    int parentId,
+    int? id,
+    int? parentId,
     title,
-    String description,
-    List<SectionContent> content,
+    String? description,
+    List<SectionContent>? content,
     this.audioCount,
   })  : content = content ?? [],
         super(
@@ -77,7 +77,7 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
   factory Section.fromJson(Map<String, dynamic> json) =>
       _$SectionFromJson(json);
 
-  Section copyWith({int audioCount, int parentId}) => Section(
+  Section copyWith({int? audioCount, int? parentId}) => Section(
         id: id,
         parentId: parentId ?? this.parentId,
         title: title,
@@ -95,12 +95,11 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
       return false;
     }
 
-    final parent = site.sections[parentId];
-    assert(parent != null);
+    final parent = site.sections![parentId!]!;
     final index =
         parent.content.indexWhere((element) => element.sectionId == id);
 
-    if (index >= 0 && audioCount > 0) {
+    if (index >= 0 && audioCount! > 0) {
       /*
        * Move content to parent.
        * Media, media sections, and child sections all need their parents set to
@@ -115,13 +114,13 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
       for (final contentId in newContentInParent
           .where((element) => element.sectionId != null)
           .map((e) => e.sectionId)) {
-        final section = site.sections[contentId];
+        final section = site.sections![contentId!];
         if (section == null) {
           // This happens because these items where removed in site.remove without
           // removing them from their parents
-          stderr.writeln('Error: not found: $contentId in ${id}');
+          stderr.writeln('Error: not found: $contentId in $id');
         } else {
-          site.sections[section.id].parentId = parentId;
+          site.sections![section.id!]!.parentId = parentId;
         }
       }
       parent.content.replaceRange(
@@ -136,7 +135,7 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
     }
 
     // Purge references to this section.
-    site.sections.remove(id);
+    site.sections!.remove(id);
     parent.content.removeWhere((element) => element.sectionId == id);
 
     return true;
@@ -151,15 +150,15 @@ class Section extends SiteDataItem implements CountableSiteDataItem {
 class SectionContent implements SectionReference {
   @HiveField(0)
   @override
-  final int sectionId;
+  final int? sectionId;
   @HiveField(1)
-  final Media media;
+  final Media? media;
   @HiveField(2)
-  final MediaSection mediaSection;
+  final MediaSection? mediaSection;
 
   /// Will be null unless used after [SiteBoxes.resolve]
   @override
-  Section section;
+  Section? section;
 
   SectionContent({this.sectionId, this.media, this.mediaSection}) {
     if ([sectionId, media, mediaSection]
@@ -175,7 +174,7 @@ class SectionContent implements SectionReference {
       _$SectionContentFromJson(json);
 
   /// Create copy of current data, but with parent set to given parent.
-  SectionContent copyWith(int parentId) => SectionContent(
+  SectionContent copyWith(int? parentId) => SectionContent(
       media: media?.copyWith(parentId: parentId),
       mediaSection: mediaSection?.copyWith(parentId: parentId),
       sectionId: sectionId);
@@ -187,30 +186,30 @@ class SectionContent implements SectionReference {
 /// One lecture. For now, only supports audio.
 class Media extends SiteDataItem {
   @HiveField(4)
-  final String source;
+  final String? source;
   @HiveField(5)
-  int _length;
+  int? _length;
   @HiveField(6)
-  final int order;
+  final int? order;
 
   /// In a [MediaSection], [parentId] is the ID of that [MediaSection] and [parentSectionId]
   /// is the ID of the [Section] in which the [MediaSection] resides. This property simplifies
   /// navigation from [Media] to [Section]
   @HiveField(7)
-  final int parentSectionId;
+  final int? parentSectionId;
 
   @override
-  int get closestSectionId => parentSectionId ?? parentId;
+  int? get closestSectionId => parentSectionId ?? parentId;
 
   Media({
-    int id,
-    int parentId,
-    String title,
-    String description,
+    int? id,
+    int? parentId,
+    String? title,
+    String? description,
     this.source,
     this.order,
     this.parentSectionId,
-    Duration length,
+    Duration? length,
   })  : _length = length?.inMilliseconds ?? 0,
         super(
           id: id,
@@ -219,7 +218,7 @@ class Media extends SiteDataItem {
           description: description,
         );
 
-  Duration get length => Duration(milliseconds: _length);
+  Duration get length => Duration(milliseconds: _length!);
   set length(Duration value) => _length = value.inMilliseconds;
 
   Map<String, dynamic> toJson() => _$MediaToJson(this);
@@ -235,10 +234,10 @@ class Media extends SiteDataItem {
   }
 
   Media copyWith(
-          {Duration length,
-          int parentId,
-          String source,
-          int parentSectionId}) =>
+          {Duration? length,
+          int? parentId,
+          String? source,
+          int? parentSectionId}) =>
       Media(
           description: description,
           length: length ?? this.length,
@@ -256,13 +255,18 @@ class Media extends SiteDataItem {
 @JsonSerializable()
 class MediaSection extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(4)
-  final List<Media> media;
+  final List<Media?>? media;
 
   @HiveField(5)
-  final int order;
+  final int? order;
 
   MediaSection(
-      {int id, int parentId, title, String description, this.media, this.order})
+      {int? id,
+      int? parentId,
+      title,
+      String? description,
+      this.media,
+      this.order})
       : super(
           id: id,
           parentId: parentId,
@@ -274,34 +278,34 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
   factory MediaSection.fromJson(Map<String, dynamic> json) =>
       _$MediaSectionFromJson(json);
 
-  MediaSection copyWith({List<Media> media, int parentId}) => MediaSection(
+  MediaSection copyWith({List<Media>? media, int? parentId}) => MediaSection(
       description: description,
       media: media ??
           (parentId == null
-                  ? this.media
-                  : this
-                      .media
-                      .map((e) => e.copyWith(parentSectionId: parentId)))
-              .toList(),
+              ? this.media
+              : this
+                  .media!
+                  .map((e) => e!.copyWith(parentSectionId: parentId))
+                  .toList())!,
       title: title,
       order: order,
       id: id,
       parentId: parentId ?? this.parentId);
 
   @override
-  int get audioCount => media.length;
+  int get audioCount => media!.length;
 }
 
 @HiveType(typeId: 5)
 @JsonSerializable()
 class TopItem {
   @HiveField(0)
-  final int sectionId;
+  final int? sectionId;
   @HiveField(1)
-  final String title;
-  Section section;
+  final String? title;
+  Section? section;
 
-  String get image => topImages[sectionId];
+  String? get image => topImages[sectionId!];
 
   TopItem({this.sectionId, this.title});
 
@@ -310,30 +314,30 @@ class TopItem {
       _$TopItemFromJson(json);
 }
 
-// var topImages = {
-//   21: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
-//   4: 'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
-//   56: 'https://insidechassidus.org/wp-content/uploads/History-and-Kaballah.jpg',
-//   28: 'https://insidechassidus.org/wp-content/uploads/Maamarim-and-handwriting.jpg',
-//   34: 'https://insidechassidus.org/wp-content/uploads/Rebbe-Sicha-and-Lekutei-Sichos.jpg',
-//   45: 'https://insidechassidus.org/wp-content/uploads/Talks-by-Rabbi-Paltiel.jpg',
-//   14: 'https://insidechassidus.org/wp-content/uploads/Tanya-Audio-Classes-Alter-Rebbe-2.jpg',
-//   40: 'https://insidechassidus.org/wp-content/uploads/Tefillah.jpg',
-//   13: 'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg'
-// };
-
 var topImages = {
-  16: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
-  1475:
-      'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
-  19: 'https://insidechassidus.org/wp-content/uploads/History-and-Kaballah.jpg',
-  17: 'https://insidechassidus.org/wp-content/uploads/Maamarim-and-handwriting.jpg',
-  18: 'https://insidechassidus.org/wp-content/uploads/Rebbe-Sicha-and-Lekutei-Sichos.jpg',
-  20: 'https://insidechassidus.org/wp-content/uploads/Talks-by-Rabbi-Paltiel.jpg',
-  6: 'https://insidechassidus.org/wp-content/uploads/Tanya-Audio-Classes-Alter-Rebbe-2.jpg',
-  15: 'https://insidechassidus.org/wp-content/uploads/Tefillah.jpg',
-  1447:
-      'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg',
-  1104:
-      'https://insidechassidus.org/wp-content/uploads/stories-of-rebbeim-1.jpg'
+  21: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
+  4: 'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
+  56: 'https://insidechassidus.org/wp-content/uploads/History-and-Kaballah.jpg',
+  28: 'https://insidechassidus.org/wp-content/uploads/Maamarim-and-handwriting.jpg',
+  34: 'https://insidechassidus.org/wp-content/uploads/Rebbe-Sicha-and-Lekutei-Sichos.jpg',
+  45: 'https://insidechassidus.org/wp-content/uploads/Talks-by-Rabbi-Paltiel.jpg',
+  14: 'https://insidechassidus.org/wp-content/uploads/Tanya-Audio-Classes-Alter-Rebbe-2.jpg',
+  40: 'https://insidechassidus.org/wp-content/uploads/Tefillah.jpg',
+  13: 'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg'
 };
+
+// var topImages = {
+//   16: 'https://insidechassidus.org/wp-content/uploads/Hayom-Yom-and-Rebbe-Audio-Classes-6.jpg',
+//   1475:
+//       'https://insidechassidus.org/wp-content/uploads/Chassidus-of-the-Year-Shiurim.jpg',
+//   19: 'https://insidechassidus.org/wp-content/uploads/History-and-Kaballah.jpg',
+//   17: 'https://insidechassidus.org/wp-content/uploads/Maamarim-and-handwriting.jpg',
+//   18: 'https://insidechassidus.org/wp-content/uploads/Rebbe-Sicha-and-Lekutei-Sichos.jpg',
+//   20: 'https://insidechassidus.org/wp-content/uploads/Talks-by-Rabbi-Paltiel.jpg',
+//   6: 'https://insidechassidus.org/wp-content/uploads/Tanya-Audio-Classes-Alter-Rebbe-2.jpg',
+//   15: 'https://insidechassidus.org/wp-content/uploads/Tefillah.jpg',
+//   1447:
+//       'https://insidechassidus.org/wp-content/uploads/Parsha-of-the-Week-Audio-Classes.jpg',
+//   1104:
+//       'https://insidechassidus.org/wp-content/uploads/stories-of-rebbeim-1.jpg'
+// };

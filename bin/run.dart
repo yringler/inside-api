@@ -10,7 +10,7 @@ final encoder = JsonEncoder.withIndent('\t');
 final currentRawSiteFile = File('rawsite.current.json');
 
 const dropBoxFile = '/site.v$dataVersion.json.gz';
-const isDebug = false;
+const isDebug = true;
 const sourceUrl =
     isDebug ? 'http://localhost/' : 'https://insidechassidus.org/';
 
@@ -45,10 +45,11 @@ void main(List<String> arguments) async {
   if (classList.where((element) => element.length == Duration.zero).length >
       numInvalidMedia) {
     print('running check_duration');
-    await process.run('node', ['./scriptlets/audiolength/get_duration.js']);
+    await process.runExecutableArguments(
+        'node', ['./scriptlets/audiolength/get_duration.js']);
   }
   print('set duration');
-  await _setSiteDuration(site);
+  _setSiteDuration(site);
 
   await _updateLatestLocalCloud(site);
   print('returning');
@@ -88,13 +89,13 @@ Future<void> _updateLatestLocalCloud(Site site) async {
     // Save site as being current.
     await currentRawSiteFile.writeAsString(newJson, flush: true);
 
-    await _setCurrentVersionDate(site.createdDate);
+    await _setCurrentVersionDate(site.createdDate!);
 
     print('uploading...');
     await _uploadToDropbox(site);
     if (!isDebug) {
       print('notifying...');
-      await _notifyApiOfLatest(site.createdDate);
+      await _notifyApiOfLatest(site.createdDate!);
     } else {
       print('in debug mode');
     }
@@ -113,7 +114,7 @@ Future<void> _notifyApiOfLatest(DateTime date) async {
   final response = await request.send();
 
   if (response.statusCode != HttpStatus.noContent) {
-    await File('.errorlog').writeAsStringSync('Error! Setting failed');
+    File('.errorlog').writeAsStringSync('Error! Setting failed');
   }
 }
 
@@ -144,11 +145,11 @@ Future<void> _uploadToDropbox(Site site) async {
 
 List<Media> _getClassList(Site site) {
   final siteContent =
-      site.sections.values.map((e) => e.content).expand((e) => e).toList();
+      site.sections!.values.map((e) => e.content).expand((e) => e).toList();
 
   final nestedMedia = siteContent
       .where((element) => element.mediaSection != null)
-      .expand((element) => element.mediaSection.media)
+      .expand((element) => element.mediaSection!.media!)
       .toList();
 
   final regularMedia = siteContent
@@ -160,13 +161,13 @@ List<Media> _getClassList(Site site) {
 
   allMedia = allMedia.toSet().toList();
 
-  allMedia.sort((a, b) => a.source.compareTo(b.source));
+  allMedia.sort((a, b) => a!.source!.compareTo(b!.source!));
 
   final allValidMedia = allMedia
-      .where((element) => element.source.toLowerCase().endsWith('.mp3'))
+      .where((element) => element!.source!.toLowerCase().endsWith('.mp3'))
       .toList();
 
-  return allValidMedia;
+  return allValidMedia as List<Media>;
 }
 
 void _setSiteDuration(Site site) {
@@ -175,18 +176,18 @@ void _setSiteDuration(Site site) {
       json.decode(durationJson.readAsStringSync()) as Map<String, dynamic>;
   final duration = Map.castFrom<String, dynamic, String, int>(dynamicDuration);
 
-  for (final sectionId in site.sections.keys.toList()) {
-    final section = site.sections[sectionId];
+  for (final sectionId in site.sections!.keys.toList()) {
+    final section = site.sections![sectionId]!;
     for (var i = 0; i < section.content.length; i++) {
       final content = section.content[i];
 
-      if (content.media != null && duration[content.media.source] != null) {
-        content.media.length =
-            Duration(milliseconds: duration[content.media.source]);
+      if (content.media != null && duration[content.media!.source!] != null) {
+        content.media!.length =
+            Duration(milliseconds: duration[content.media!.source!]!);
       } else if (content.mediaSection != null) {
-        for (final media in content.mediaSection.media) {
-          if (duration[media.source] != null) {
-            media.length = Duration(milliseconds: duration[media.source]);
+        for (final media in content.mediaSection!.media!) {
+          if (duration[media!.source!] != null) {
+            media.length = Duration(milliseconds: duration[media.source!]!);
           }
         }
       }
