@@ -309,13 +309,13 @@ SectionContent? _parsePost(Site site, wp.Post post) {
         // The direct parent of the media item medias is the media section.
         .map((e) => e?.copyWith(parentId: post.id))
         .where((element) => element != null)
-        .toList();
+        .toList() as List<Media>;
 
     // Give any media without a good title the title of the post with a counter.
     for (var i = 0; i < medias.length; ++i) {
-      if ((medias[i]!.title?.length ?? 0) <= 3 &&
+      if ((medias[i].title?.length ?? 0) <= 3 &&
           (post.title!.rendered?.length ?? 0) > 3) {
-        medias[i]!.title = '${post.title!.rendered}: Class ${i + 1}';
+        medias[i].title = '${post.title!.rendered}: Class ${i + 1}';
       }
     }
 

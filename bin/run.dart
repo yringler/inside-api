@@ -155,19 +155,19 @@ List<Media> _getClassList(Site site) {
   final regularMedia = siteContent
       .where((element) => element.media != null)
       .map((e) => e.media)
-      .toList();
+      .toList() as List<Media>;
 
   var allMedia = nestedMedia.toList()..addAll(regularMedia);
 
   allMedia = allMedia.toSet().toList();
 
-  allMedia.sort((a, b) => a!.source!.compareTo(b!.source!));
+  allMedia.sort((a, b) => a.source!.compareTo(b.source!));
 
   final allValidMedia = allMedia
-      .where((element) => element!.source!.toLowerCase().endsWith('.mp3'))
+      .where((element) => element.source!.toLowerCase().endsWith('.mp3'))
       .toList();
 
-  return allValidMedia as List<Media>;
+  return allValidMedia;
 }
 
 void _setSiteDuration(Site site) {
@@ -186,7 +186,7 @@ void _setSiteDuration(Site site) {
             Duration(milliseconds: duration[content.media!.source!]!);
       } else if (content.mediaSection != null) {
         for (final media in content.mediaSection!.media!) {
-          if (duration[media!.source!] != null) {
+          if (duration[media.source!] != null) {
             media.length = Duration(milliseconds: duration[media.source!]!);
           }
         }

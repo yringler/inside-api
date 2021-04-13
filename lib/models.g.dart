@@ -164,7 +164,7 @@ class MediaSectionAdapter extends TypeAdapter<MediaSection> {
       parentId: fields[1] as int?,
       title: fields[2] as dynamic,
       description: fields[3] as String?,
-      media: (fields[4] as List?)?.cast<Media?>(),
+      media: (fields[4] as List?)?.cast<Media>(),
       order: fields[5] as int?,
     );
   }
@@ -316,8 +316,7 @@ MediaSection _$MediaSectionFromJson(Map<String, dynamic> json) {
     title: json['title'],
     description: json['description'] as String?,
     media: (json['media'] as List<dynamic>?)
-        ?.map(
-            (e) => e == null ? null : Media.fromJson(e as Map<String, dynamic>))
+        ?.map((e) => Media.fromJson(e as Map<String, dynamic>))
         .toList(),
     order: json['order'] as int?,
   );

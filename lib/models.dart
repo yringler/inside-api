@@ -255,7 +255,7 @@ class Media extends SiteDataItem {
 @JsonSerializable()
 class MediaSection extends SiteDataItem implements CountableSiteDataItem {
   @HiveField(4)
-  final List<Media?>? media;
+  final List<Media>? media;
 
   @HiveField(5)
   final int? order;
@@ -285,7 +285,7 @@ class MediaSection extends SiteDataItem implements CountableSiteDataItem {
               ? this.media
               : this
                   .media!
-                  .map((e) => e!.copyWith(parentSectionId: parentId))
+                  .map((e) => e.copyWith(parentSectionId: parentId))
                   .toList())!,
       title: title,
       order: order,
