@@ -51,7 +51,8 @@ class SiteBoxes {
   DateTime? get createdDate =>
       data!.containsKey('date') ? data!.get('date') as DateTime? : null;
 
-  Future<void> setCreatedDate(DateTime? value) async => data!.put('date', value);
+  Future<void> setCreatedDate(DateTime? value) async =>
+      data!.put('date', value);
 
   /// Goes through all content and loads any sections.
   Future<Section> resolve(Section section) async {
@@ -118,13 +119,14 @@ class SiteBoxes {
 }
 
 /// Loads data into hive. Clears any data already there.
-Future<SiteBoxes?> _setHiveData({required SiteBoxes boxes, required String rawJson}) async {
+Future<SiteBoxes?> _setHiveData(
+    {required SiteBoxes boxes, required String rawJson}) async {
   final site = Site.fromJson(json.decode(rawJson));
 
   // Clear all data before adding new data.
   await boxes.hive!.deleteFromDisk();
   // Create the boxes again.
-  boxes = await (_getSiteBoxesNoData(path: boxes.path!) as FutureOr<SiteBoxes>);
+  boxes = (await _getSiteBoxesNoData(path: boxes.path!))!;
 
   await boxes.sections!.putAll(site.sections!);
   await boxes.topItems!.putAll(
