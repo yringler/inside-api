@@ -12,14 +12,13 @@ Site _$SiteFromJson(Map<String, dynamic> json) {
         ? null
         : DateTime.parse(json['createdDate'] as String),
   )
-    ..sections = (json['sections'] as Map<String, dynamic>)?.map(
-      (k, e) => MapEntry(int.parse(k),
-          e == null ? null : Section.fromJson(e as Map<String, dynamic>)),
+    ..sections = (json['sections'] as Map<String, dynamic>?)?.map(
+      (k, e) =>
+          MapEntry(int.parse(k), Section.fromJson(e as Map<String, dynamic>)),
     )
-    ..topItems = (json['topItems'] as List)
-        ?.map((e) =>
-            e == null ? null : TopItem.fromJson(e as Map<String, dynamic>))
-        ?.toList();
+    ..topItems = (json['topItems'] as List<dynamic>?)
+        ?.map((e) => TopItem.fromJson(e as Map<String, dynamic>))
+        .toList();
 }
 
 Map<String, dynamic> _$SiteToJson(Site instance) => <String, dynamic>{

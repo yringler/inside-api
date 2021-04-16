@@ -17,12 +17,12 @@ class SectionAdapter extends TypeAdapter<Section> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Section(
-      id: fields[0] as int,
-      parentId: fields[1] as int,
+      id: fields[0] as int?,
+      parentId: fields[1] as int?,
       title: fields[2] as dynamic,
-      description: fields[3] as String,
-      content: (fields[5] as List)?.cast<SectionContent>(),
-      audioCount: fields[4] as int,
+      description: fields[3] as String?,
+      content: (fields[5] as List?)?.cast<SectionContent>(),
+      audioCount: fields[4] as int?,
     );
   }
 
@@ -66,9 +66,9 @@ class SectionContentAdapter extends TypeAdapter<SectionContent> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return SectionContent(
-      sectionId: fields[0] as int,
-      media: fields[1] as Media,
-      mediaSection: fields[2] as MediaSection,
+      sectionId: fields[0] as int?,
+      media: fields[1] as Media?,
+      mediaSection: fields[2] as MediaSection?,
     );
   }
 
@@ -106,14 +106,14 @@ class MediaAdapter extends TypeAdapter<Media> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Media(
-      id: fields[0] as int,
-      parentId: fields[1] as int,
-      title: fields[2] as String,
-      description: fields[3] as String,
-      source: fields[4] as String,
-      order: fields[6] as int,
-      parentSectionId: fields[7] as int,
-    ).._length = fields[5] as int;
+      id: fields[0] as int?,
+      parentId: fields[1] as int?,
+      title: fields[2] as String?,
+      description: fields[3] as String?,
+      source: fields[4] as String?,
+      order: fields[6] as int?,
+      parentSectionId: fields[7] as int?,
+    ).._length = fields[5] as int?;
   }
 
   @override
@@ -160,12 +160,12 @@ class MediaSectionAdapter extends TypeAdapter<MediaSection> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return MediaSection(
-      id: fields[0] as int,
-      parentId: fields[1] as int,
+      id: fields[0] as int?,
+      parentId: fields[1] as int?,
       title: fields[2] as dynamic,
-      description: fields[3] as String,
-      media: (fields[4] as List)?.cast<Media>(),
-      order: fields[5] as int,
+      description: fields[3] as String?,
+      media: (fields[4] as List?)?.cast<Media>(),
+      order: fields[5] as int?,
     );
   }
 
@@ -209,8 +209,8 @@ class TopItemAdapter extends TypeAdapter<TopItem> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return TopItem(
-      sectionId: fields[0] as int,
-      title: fields[1] as String,
+      sectionId: fields[0] as int?,
+      title: fields[1] as String?,
     );
   }
 
@@ -241,16 +241,14 @@ class TopItemAdapter extends TypeAdapter<TopItem> {
 
 Section _$SectionFromJson(Map<String, dynamic> json) {
   return Section(
-    id: json['id'] as int,
-    parentId: json['parentId'] as int,
+    id: json['id'] as int?,
+    parentId: json['parentId'] as int?,
     title: json['title'],
-    description: json['description'] as String,
-    content: (json['content'] as List)
-        ?.map((e) => e == null
-            ? null
-            : SectionContent.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    audioCount: json['audioCount'] as int,
+    description: json['description'] as String?,
+    content: (json['content'] as List<dynamic>?)
+        ?.map((e) => SectionContent.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    audioCount: json['audioCount'] as int?,
   );
 }
 
@@ -265,7 +263,7 @@ Map<String, dynamic> _$SectionToJson(Section instance) => <String, dynamic>{
 
 SectionContent _$SectionContentFromJson(Map<String, dynamic> json) {
   return SectionContent(
-    sectionId: json['sectionId'] as int,
+    sectionId: json['sectionId'] as int?,
     media: json['media'] == null
         ? null
         : Media.fromJson(json['media'] as Map<String, dynamic>),
@@ -287,13 +285,13 @@ Map<String, dynamic> _$SectionContentToJson(SectionContent instance) =>
 
 Media _$MediaFromJson(Map<String, dynamic> json) {
   return Media(
-    id: json['id'] as int,
-    parentId: json['parentId'] as int,
-    title: json['title'] as String,
-    description: json['description'] as String,
-    source: json['source'] as String,
-    order: json['order'] as int,
-    parentSectionId: json['parentSectionId'] as int,
+    id: json['id'] as int?,
+    parentId: json['parentId'] as int?,
+    title: json['title'] as String?,
+    description: json['description'] as String?,
+    source: json['source'] as String?,
+    order: json['order'] as int?,
+    parentSectionId: json['parentSectionId'] as int?,
     length: json['length'] == null
         ? null
         : Duration(microseconds: json['length'] as int),
@@ -308,20 +306,19 @@ Map<String, dynamic> _$MediaToJson(Media instance) => <String, dynamic>{
       'source': instance.source,
       'order': instance.order,
       'parentSectionId': instance.parentSectionId,
-      'length': instance.length?.inMicroseconds,
+      'length': instance.length.inMicroseconds,
     };
 
 MediaSection _$MediaSectionFromJson(Map<String, dynamic> json) {
   return MediaSection(
-    id: json['id'] as int,
-    parentId: json['parentId'] as int,
+    id: json['id'] as int?,
+    parentId: json['parentId'] as int?,
     title: json['title'],
-    description: json['description'] as String,
-    media: (json['media'] as List)
-        ?.map(
-            (e) => e == null ? null : Media.fromJson(e as Map<String, dynamic>))
-        ?.toList(),
-    order: json['order'] as int,
+    description: json['description'] as String?,
+    media: (json['media'] as List<dynamic>?)
+        ?.map((e) => Media.fromJson(e as Map<String, dynamic>))
+        .toList(),
+    order: json['order'] as int?,
   );
 }
 
@@ -337,8 +334,8 @@ Map<String, dynamic> _$MediaSectionToJson(MediaSection instance) =>
 
 TopItem _$TopItemFromJson(Map<String, dynamic> json) {
   return TopItem(
-    sectionId: json['sectionId'] as int,
-    title: json['title'] as String,
+    sectionId: json['sectionId'] as int?,
+    title: json['title'] as String?,
   )..section = json['section'] == null
       ? null
       : Section.fromJson(json['section'] as Map<String, dynamic>);

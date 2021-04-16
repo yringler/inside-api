@@ -12,8 +12,8 @@ const int dataVersion = 4;
 
 /// [hivePath] is where the data should be stored.
 /// [rawData] is the entirety of the site JSON.
-Future<SiteBoxes> getSiteBoxesWithData(
-    {String hivePath, String rawData}) async {
+Future<SiteBoxes?> getSiteBoxesWithData(
+    {required String hivePath, String? rawData}) async {
   final boxes = await _getSiteBoxesNoData(path: hivePath);
 
   if (boxes == null) {
@@ -40,18 +40,19 @@ Future<SiteBoxes> getSiteBoxesWithData(
 }
 
 class SiteBoxes {
-  final String path;
-  final HiveImpl hive;
-  final LazyBox<Section> sections;
-  final Box<TopItem> topItems;
+  final String? path;
+  final HiveImpl? hive;
+  final LazyBox<Section>? sections;
+  final Box<TopItem>? topItems;
 
   /// Contians assorted bits of information
-  final Box data;
+  final Box? data;
 
-  DateTime get createdDate =>
-      data.containsKey('date') ? data.get('date') as DateTime : null;
+  DateTime? get createdDate =>
+      data!.containsKey('date') ? data!.get('date') as DateTime? : null;
 
-  Future<void> setCreatedDate(DateTime value) async => data.put('date', value);
+  Future<void> setCreatedDate(DateTime? value) async =>
+      data!.put('date', value);
 
   /// Goes through all content and loads any sections.
   Future<Section> resolve(Section section) async {
@@ -69,14 +70,14 @@ class SiteBoxes {
   Future<List<SectionReference>> resolveIterable(
       List<SectionReference> references) async {
     final sectionFutures =
-        references.map((e) => sections.get(e.sectionId)).toList();
+        references.map((e) => sections!.get(e.sectionId)).toList();
 
     if (sectionFutures.isEmpty) {
       return references;
     }
 
     final sectionMap = Map.fromEntries(
-        (await Future.wait(sectionFutures)).map((e) => MapEntry(e.id, e)));
+        (await Future.wait(sectionFutures)).map((e) => MapEntry(e!.id, e)));
 
     for (final s in references) {
       s.section = sectionMap[s.sectionId];
@@ -90,13 +91,13 @@ class SiteBoxes {
     final request = Request(
         'GET',
         Uri.parse(
-            'https://inside-api.herokuapp.com/check?date=${createdDate.millisecondsSinceEpoch}&v=$dataVersion'));
+            'https://inside-api.herokuapp.com/check?date=${createdDate!.millisecondsSinceEpoch}&v=$dataVersion'));
 
     try {
       final response = await request.send();
 
       if (response.statusCode == HttpStatus.ok) {
-        await File(p.join(path, 'site.json'))
+        await File(p.join(path!, 'site.json'))
             .writeAsBytes(GZipCodec().decode(await response.stream.toBytes()));
       }
     } catch (ex) {
@@ -105,12 +106,12 @@ class SiteBoxes {
   }
 
   Future<void> _setTopSections() async {
-    if (topItems.isEmpty) {
+    if (topItems!.isEmpty) {
       return;
     }
 
-    for (final top in topItems.values) {
-      top.section = await sections.get(top.sectionId);
+    for (final top in topItems!.values) {
+      top.section = await sections!.get(top.sectionId);
     }
   }
 
@@ -118,24 +119,25 @@ class SiteBoxes {
 }
 
 /// Loads data into hive. Clears any data already there.
-Future<SiteBoxes> _setHiveData({SiteBoxes boxes, String rawJson}) async {
+Future<SiteBoxes?> _setHiveData(
+    {required SiteBoxes boxes, required String rawJson}) async {
   final site = Site.fromJson(json.decode(rawJson));
 
   // Clear all data before adding new data.
-  await boxes.hive.deleteFromDisk();
+  await boxes.hive!.deleteFromDisk();
   // Create the boxes again.
-  boxes = await _getSiteBoxesNoData(path: boxes.path);
+  boxes = (await _getSiteBoxesNoData(path: boxes.path!))!;
 
-  await boxes.sections.putAll(site.sections);
-  await boxes.topItems.putAll(
-      Map.fromEntries(site.topItems.map((e) => MapEntry(e.sectionId, e))));
+  await boxes.sections!.putAll(site.sections!);
+  await boxes.topItems!.putAll(
+      Map.fromEntries(site.topItems!.map((e) => MapEntry(e.sectionId, e))));
   await boxes.setCreatedDate(site.createdDate);
 
   return boxes;
 }
 
 /// A simple open of all the boxes which doesn't check wether they have data or not.
-Future<SiteBoxes> _getSiteBoxesNoData({String path}) async {
+Future<SiteBoxes?> _getSiteBoxesNoData({required String path}) async {
   final hive = HiveImpl();
   await Directory(path).create();
   hive.init(path);
